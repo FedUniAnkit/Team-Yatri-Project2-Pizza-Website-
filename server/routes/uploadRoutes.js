@@ -51,11 +51,9 @@ router.post('/image', protect, upload.single('image'), async (req, res) => {
       });
     }
 
-    // Create an absolute URL for the uploaded file so the client can load from the backend
-    const host = req.get('host');
-    const protocol = (req.headers['x-forwarded-proto'] || req.protocol || 'http');
-    const baseUrl = `${protocol}://${host}`;
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    // Return relative URL path for the uploaded file
+    // Frontend will use this with the proxy configuration
+    const imageUrl = `/uploads/${req.file.filename}`;
     
     console.log('File uploaded successfully:', imageUrl);
     

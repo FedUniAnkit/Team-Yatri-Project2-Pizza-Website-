@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { initSocket } = require('./socket');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -88,8 +89,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.text({ limit: '50mb' }));
 app.use(express.raw({ limit: '50mb' }));
 
-// Static files
-app.use('/uploads', express.static('uploads'));
+// Static files - serve uploads with absolute path
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);

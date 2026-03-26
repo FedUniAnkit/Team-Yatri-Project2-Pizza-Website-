@@ -169,10 +169,10 @@ const getAllProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
-    if (product && product.isActive) {
+    if (product) {
       res.status(200).json({ success: true, data: transformProductData(product) });
     } else {
-      res.status(404).json({ success: false, message: 'Product not found or is not available.' });
+      res.status(404).json({ success: false, message: 'Product not found.' });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
@@ -597,6 +597,83 @@ const getProductStats = async (req, res) => {
   }
 };
 
+// @desc    Create customization option
+// @route   POST /api/products/customization-options
+// @access  Private/Admin/Staff
+const createCustomizationOption = async (req, res) => {
+  try {
+    const { optionType, name, displayName, priceModifier, category, isAvailable, sortOrder } = req.body;
+
+    if (!optionType || !name || !displayName) {
+      return res.status(400).json({
+        success: false,
+        message: 'optionType, name, and displayName are required'
+      });
+    }
+
+    const option = await CustomizationOption.create({
+      optionType,
+      name,
+      displayName,
+      priceModifier: parseFloat(priceModifier) || 0,
+      category,
+      isAvailable: isAvailable !== false,
+      sortOrder: parseInt(sortOrder) || 0
+    });
+
+    res.status(201).json({ success: true, data: option });
+  } catch (error) {
+    console.error('Create customization option error:', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update customization option
+// @route   PUT /api/products/customization-options/:id
+// @access  Private/Admin/Staff
+const updateCustomizationOption = async (req, res) => {
+  try {
+    const option = await CustomizationOption.findByPk(req.params.id);
+    if (!option) {
+      return res.status(404).json({ success: false, message: 'Customization option not found' });
+    }
+
+    const { optionType, name, displayName, priceModifier, category, isAvailable, sortOrder } = req.body;
+
+    if (optionType !== undefined) option.optionType = optionType;
+    if (name !== undefined) option.name = name;
+    if (displayName !== undefined) option.displayName = displayName;
+    if (priceModifier !== undefined) option.priceModifier = parseFloat(priceModifier);
+    if (category !== undefined) option.category = category;
+    if (isAvailable !== undefined) option.isAvailable = isAvailable;
+    if (sortOrder !== undefined) option.sortOrder = parseInt(sortOrder);
+
+    await option.save();
+    res.json({ success: true, data: option });
+  } catch (error) {
+    console.error('Update customization option error:', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Delete customization option
+// @route   DELETE /api/products/customization-options/:id
+// @access  Private/Admin/Staff
+const deleteCustomizationOption = async (req, res) => {
+  try {
+    const option = await CustomizationOption.findByPk(req.params.id);
+    if (!option) {
+      return res.status(404).json({ success: false, message: 'Customization option not found' });
+    }
+
+    await option.destroy();
+    res.json({ success: true, message: 'Customization option deleted' });
+  } catch (error) {
+    console.error('Delete customization option error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
@@ -604,6 +681,9 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getCustomizationOptions,
+  createCustomizationOption,
+  updateCustomizationOption,
+  deleteCustomizationOption,
   getProductCategories,
   getAllProductsAdmin,
   bulkUpdateProductStatus,

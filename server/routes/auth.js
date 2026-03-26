@@ -69,4 +69,9 @@ router.post('/create-staff', (req, res, next) => {
   next();
 }, authenticate, authorize('admin'), createStaff);
 
+// @route   POST /api/auth/invite-staff
+// @desc    Alias for create-staff (Admin invites staff with temporary password)
+// @access  Private/Admin
+router.post('/invite-staff', authenticate, authorize('admin'), createStaff);
+
 module.exports = router;

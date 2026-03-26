@@ -93,18 +93,18 @@ const sendPasswordResetByAdminEmail = async (user, resetToken) => {
 const sendOrderConfirmationEmail = async (user, order) => {
   await sendEmail(
     user.email,
-    `Order Confirmation - #${order.id}`,
+    `Order Confirmation - #${order.orderNumber}`,
     'order-confirmation',
     {
       name: user.name,
-      orderNumber: order.id,
-      orderDate: new Date(order.createdAt).toLocaleDateString(),
-      orderTotal: order.totalPrice,
-      items: order.items.map(item => ({
+      orderNumber: order.orderNumber,
+      orderDate: new Date(order.createdAt).toLocaleDateString('en-AU'),
+      orderTotal: parseFloat(order.totalAmount).toFixed(2),
+      items: (order.items || []).map(item => ({
         name: item.name,
         quantity: item.quantity,
         price: item.price,
-        total: item.quantity * item.price,
+        total: item.quantity * parseFloat(item.price),
       })),
     }
   );

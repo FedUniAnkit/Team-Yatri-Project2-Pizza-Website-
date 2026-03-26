@@ -15,10 +15,14 @@ const initSocket = (server) => {
 
     // Room for staff members to receive order notifications
     socket.on('join_staff_room', () => {
-      // In a real app, you'd have authentication middleware here
-      // to verify the user is actually a staff member.
       socket.join('staff_room');
       console.log(`Socket ${socket.id} joined staff_room`);
+    });
+
+    // Personal room for customers to receive their own order updates
+    socket.on('join_customer_room', (customerId) => {
+      socket.join(`customer_${customerId}`);
+      console.log(`Socket ${socket.id} joined customer_${customerId}`);
     });
 
     // Room for order-specific messaging

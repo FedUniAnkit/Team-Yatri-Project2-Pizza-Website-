@@ -6,6 +6,9 @@ const {
   updateProduct,
   deleteProduct,
   getCustomizationOptions,
+  createCustomizationOption,
+  updateCustomizationOption,
+  deleteCustomizationOption,
   getProductCategories,
   getAllProductsAdmin,
   bulkUpdateProductStatus,
@@ -18,6 +21,11 @@ const router = express.Router();
 // Public routes
 router.get('/categories', getProductCategories);
 router.get('/customization-options', getCustomizationOptions);
+
+// Customization options CRUD (admin/staff only)
+router.post('/customization-options', authenticate, authorize('admin', 'staff'), createCustomizationOption);
+router.put('/customization-options/:id', authenticate, authorize('admin', 'staff'), updateCustomizationOption);
+router.delete('/customization-options/:id', authenticate, authorize('admin', 'staff'), deleteCustomizationOption);
 
 router.route('/')
   .get(getAllProducts)

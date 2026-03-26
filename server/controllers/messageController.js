@@ -17,7 +17,7 @@ const getMessagesForOrder = async (req, res) => {
 
     // Security check: Ensure the user is part of the order or an admin/staff
     const order = await Order.findByPk(orderId);
-    if (req.user.id !== order.userId && req.user.role === 'customer') {
+    if (req.user.id !== order.customerId && req.user.role === 'customer') {
         return res.status(403).json({ success: false, message: 'Not authorized to view these messages' });
     }
 

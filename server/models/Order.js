@@ -72,6 +72,18 @@ const Order = sequelize.define('Order', {
       }
     }
   },
+  cancellationReason: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  cancelledBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
   estimatedDeliveryTime: {
     type: DataTypes.DATE,
     allowNull: true
@@ -85,8 +97,9 @@ const Order = sequelize.define('Order', {
   hooks: {
     beforeCreate: async (order) => {
       if (!order.orderNumber) {
-        const count = await Order.count();
-        order.orderNumber = `ORD${Date.now()}${count + 1}`;
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 1000);
+        order.orderNumber = `ORD-${timestamp}-${random}`;
       }
     }
   },

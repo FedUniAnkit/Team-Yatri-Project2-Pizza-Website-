@@ -73,15 +73,15 @@
                 <tr>
                     <td><%= item.name %></td>
                     <td><%= item.quantity %></td>
-                    <td>$<%= item.price.toFixed(2) %></td>
-                    <td>$<%= item.total.toFixed(2) %></td>
+                    <td>$<%= parseFloat(item.price).toFixed(2) %></td>
+                    <td>$<%= (parseFloat(item.price) * item.quantity).toFixed(2) %></td>
                 </tr>
                 <% }); %>
             </tbody>
         </table>
         
         <div class="order-total">
-            <p>Total: $<%= orderTotal.toFixed(2) %></p>
+            <p>Total: $<%= orderTotal %></p>
         </div>
         
         <p>We'll send you a notification when your order is on its way. You can also track your order by logging into your account.</p>

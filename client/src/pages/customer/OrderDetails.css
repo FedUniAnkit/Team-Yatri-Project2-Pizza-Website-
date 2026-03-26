@@ -1,0 +1,79 @@
+/* ===== ORDER DETAILS ===== */
+.order-details-container { max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 3rem; }
+.od-loading, .od-error { text-align: center; padding: 3rem; color: #7f8c8d; }
+.od-error { color: #e74c3c; }
+
+.od-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
+  padding: 1.5rem; margin-bottom: 1.2rem;
+}
+.od-header h1 { font-size: 1.5rem; color: #2c3e50; margin: 0 0 0.3rem; }
+.od-date { font-size: 0.85rem; color: #95a5a6; margin: 0; }
+
+.od-status-badge {
+  padding: 0.5rem 1.1rem; border-radius: 20px;
+  font-size: 0.82rem; font-weight: 700; color: #fff;
+  white-space: nowrap;
+}
+
+.od-cancel-reason {
+  background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;
+  padding: 0.9rem 1.2rem; margin-bottom: 1.2rem; font-size: 0.9rem; color: #856404;
+}
+
+.od-section {
+  background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
+  padding: 1.5rem; margin-bottom: 1.2rem;
+}
+.od-section h2 { font-size: 1rem; font-weight: 700; color: #2c3e50; margin: 0 0 1rem; }
+.od-section p  { margin: 0.2rem 0; color: #555; font-size: 0.95rem; }
+
+.od-items { display: flex; flex-direction: column; gap: 0.6rem; }
+.od-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.75rem 1rem; background: #f9fafb; border-radius: 8px;
+}
+.od-item-info { display: flex; flex-direction: column; }
+.od-item-name { font-weight: 600; color: #2c3e50; }
+.od-item-qty    { font-size: 0.8rem; color: #7f8c8d; }
+.od-item-custom { font-size: 0.75rem; color: #7f8c8d; font-style: italic; margin-top: 2px; }
+.od-item-price { font-weight: 600; color: #2c3e50; }
+.od-total {
+  display: flex; justify-content: space-between;
+  padding: 1rem 1rem 0; font-size: 1.1rem; border-top: 1px solid #e9ecef; margin-top: 0.5rem;
+}
+
+.od-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 0; }
+.od-meta-grid .od-section { margin-bottom: 1.2rem; }
+
+.od-pay-status { font-weight: 700; text-transform: capitalize; }
+.pay-pending  { color: #f39c12; }
+.pay-paid     { color: #27ae60; }
+.pay-failed   { color: #e74c3c; }
+.pay-refunded { color: #3498db; }
+
+.od-notes {
+  background: #f9fafb; border-radius: 8px; padding: 0.8rem 1rem;
+  font-style: italic; color: #555; margin: 0;
+}
+
+.od-actions {
+  display: flex; gap: 1rem; margin-top: 0.5rem;
+}
+.od-btn-secondary {
+  padding: 0.7rem 1.5rem; background: #f0f0f0; color: #555;
+  border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+}
+.od-btn-secondary:hover { background: #e0e0e0; }
+.od-btn-cancel {
+  padding: 0.7rem 1.5rem; background: #e74c3c; color: #fff;
+  border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+}
+.od-btn-cancel:hover:not(:disabled) { background: #c0392b; }
+.od-btn-cancel:disabled { background: #ccc; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .od-header    { flex-direction: column; gap: 1rem; }
+  .od-meta-grid { grid-template-columns: 1fr; }
+}

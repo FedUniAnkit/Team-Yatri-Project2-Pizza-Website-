@@ -1,4 +1,5 @@
-const { Order, OrderItem, Product, User } = require('../models');
+const { Order, Product, User } = require('../models');
+const { sequelize } = require('../config/database');
 const { Op, Sequelize } = require('sequelize');
 
 // @desc    Get sales analytics
@@ -28,7 +29,7 @@ const getSalesAnalytics = async (req, res) => {
     const salesData = await Order.findAll({
       attributes: [
         [Sequelize.fn('date_trunc', dateTrunc, Sequelize.col('createdAt')), 'period'],
-        [Sequelize.fn('sum', Sequelize.col('totalPrice')), 'totalSales'],
+        [Sequelize.fn('sum', Sequelize.col('totalAmount')), 'totalSales'],
         [Sequelize.fn('count', Sequelize.col('id')), 'orderCount']
       ],
       where: {
@@ -55,36 +56,23 @@ const getSalesAnalytics = async (req, res) => {
 const getProductAnalytics = async (req, res) => {
   try {
     const { limit = 10, period = 'month' } = req.query;
-    
-    const productData = await OrderItem.findAll({
-      attributes: [
-        'productId',
-        [Sequelize.col('Product.name'), 'productName'],
-        [Sequelize.fn('sum', Sequelize.col('quantity')), 'totalQuantity'],
-        [Sequelize.fn('sum', Sequelize.literal('quantity * price')), 'totalRevenue']
-      ],
-      include: [
-        {
-          model: Product,
-          attributes: []
-        },
-        {
-          model: Order,
-          attributes: [],
-          where: {
-            status: { [Op.not]: 'cancelled' },
-            createdAt: {
-              [Op.gte]: getDateRange(period)
-            }
-          },
-          required: true
-        }
-      ],
-      group: ['productId', 'Product.name'],
-      order: [[Sequelize.literal('totalQuantity'), 'DESC']],
-      limit: parseInt(limit),
-      raw: true
-    });
+    const since = getDateRange(period);
+
+    // Items are stored as JSONB — use jsonb_array_elements to unnest and aggregate
+    const productData = await sequelize.query(
+      `SELECT
+         item->>'name'                              AS "productName",
+         SUM((item->>'quantity')::int)              AS "totalQuantity",
+         SUM((item->>'quantity')::int * (item->>'price')::numeric) AS "totalRevenue"
+       FROM "Orders",
+            jsonb_array_elements(items) AS item
+       WHERE status != 'cancelled'
+         AND "createdAt" >= :since
+       GROUP BY item->>'name'
+       ORDER BY "totalQuantity" DESC
+       LIMIT :limit`,
+      { replacements: { since, limit: parseInt(limit) }, type: sequelize.QueryTypes.SELECT }
+    );
 
     res.json({ success: true, data: productData });
   } catch (error) {
@@ -107,7 +95,70 @@ function getDateRange(period) {
   }
 }
 
+// @desc    Get dashboard statistics
+// @route   GET /api/analytics/dashboard
+// @access  Private/Admin
+const getDashboardStats = async (req, res) => {
+  try {
+    // Get total orders
+    const totalOrders = await Order.count();
+    
+    // Get total revenue
+    const revenueResult = await Order.findOne({
+      attributes: [[Sequelize.fn('sum', Sequelize.col('totalAmount')), 'totalRevenue']],
+      where: { status: { [Op.not]: 'cancelled' } },
+      raw: true
+    });
+    
+    // Get total customers
+    const totalCustomers = await User.count({ where: { role: 'customer' } });
+    
+    // Get total products
+    const totalProducts = await Product.count({ where: { isAvailable: true } });
+    
+    // Get pending orders
+    const pendingOrders = await Order.count({ where: { status: 'pending' } });
+    
+    // Get today's orders
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayOrders = await Order.count({
+      where: {
+        createdAt: { [Op.gte]: today }
+      }
+    });
+    
+    // Get this month's revenue
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthRevenue = await Order.findOne({
+      attributes: [[Sequelize.fn('sum', Sequelize.col('totalAmount')), 'monthRevenue']],
+      where: {
+        status: { [Op.not]: 'cancelled' },
+        createdAt: { [Op.gte]: firstDayOfMonth }
+      },
+      raw: true
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalOrders,
+        totalRevenue: parseFloat(revenueResult?.totalRevenue || 0),
+        totalCustomers,
+        totalProducts,
+        pendingOrders,
+        todayOrders,
+        monthRevenue: parseFloat(monthRevenue?.monthRevenue || 0)
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard stats error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching dashboard statistics' });
+  }
+};
+
 module.exports = {
   getSalesAnalytics,
-  getProductAnalytics
+  getProductAnalytics,
+  getDashboardStats
 };

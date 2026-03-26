@@ -1,0 +1,324 @@
+/* Account Settings Container */
+.settings-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem 1rem;
+}
+
+.settings-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 0 1rem;
+}
+
+.settings-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.settings-header p {
+  font-size: 1.1rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.settings-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Settings Card */
+.settings-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.settings-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-header h3::before {
+  content: "👤";
+  font-size: 1.5rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Form Styling */
+.settings-form {
+  margin-top: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-color: #e63946;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.1);
+  transform: translateY(-1px);
+}
+
+.form-group input:disabled,
+.form-group input.disabled-field {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #dee2e6;
+}
+
+.form-text {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Address Section */
+.address-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #f8f9fa;
+}
+
+.address-section h4 {
+  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.address-section h4::before {
+  content: "📍";
+  font-size: 1.1rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.875rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #c1121f 0%, #a01017 100%);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #6c757d;
+  border: 2px solid #6c757d;
+  box-shadow: none;
+}
+
+.btn-outline:hover {
+  background: #6c757d;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #f8f9fa;
+}
+
+/* Password Section */
+.password-info {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+}
+
+.password-info p {
+  margin: 0.5rem 0;
+  color: #6c757d;
+}
+
+/* Loading State */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .settings-header h1 {
+    font-size: 2rem;
+  }
+  
+  .settings-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .settings-card {
+    padding: 1rem;
+  }
+  
+  .card-header h3 {
+    font-size: 1.5rem;
+  }
+}

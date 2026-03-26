@@ -1,5 +1,5 @@
 const express = require('express');
-const { createOrder, getMyOrders, getOrderById, getAllOrders, updateOrderStatus, cancelOrder, initiateOrderModification } = require('../controllers/orderController');
+const { createOrder, getMyOrders, getOrderById, getAllOrders, updateOrderStatus, cancelOrder, cancelOrderByStaff, initiateOrderModification } = require('../controllers/orderController');
 const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -22,6 +22,10 @@ router.route('/:id/status')
 
 router.route('/:orderId/cancel')
   .put(authenticate, cancelOrder);
+
+// Staff/Admin: Cancel order with reason (S3-9)
+router.route('/:orderId/staff-cancel')
+  .put(authenticate, authorize('admin', 'staff'), cancelOrderByStaff);
 
 // Customer: Modify their own order
 router.route('/:orderId/modify')

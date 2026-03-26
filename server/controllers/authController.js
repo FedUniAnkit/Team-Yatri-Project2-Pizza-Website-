@@ -31,6 +31,39 @@ const register = async (req, res) => {
     
     const { name, email, password, phone, role } = req.body;
 
+    // Validate Australian phone number (10 digits, starting with 04/02/03/07/08)
+    if (phone) {
+      const cleanedPhone = phone.replace(/\s+/g, '');
+      if (!/^\d{10}$/.test(cleanedPhone)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Phone number must be exactly 10 digits'
+        });
+      }
+      if (!/^(04|02|03|07|08)/.test(cleanedPhone)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Must be a valid Australian phone number (starting with 04, 02, 03, 07, or 08)'
+        });
+      }
+    }
+
+    // Validate password strength
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+    const pwErrors = [];
+    if (!/[A-Z]/.test(password)) pwErrors.push('one uppercase letter');
+    if (!/[a-z]/.test(password)) pwErrors.push('one lowercase letter');
+    if (!/[0-9]/.test(password)) pwErrors.push('one number');
+    if (!/[!@#$%^&*()_+\-={}[\]|;:'",.<>?/`~]/.test(password)) pwErrors.push('one special character');
+    if (pwErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain: ' + pwErrors.join(', ')
+      });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -96,7 +129,8 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     console.log('[LOGIN] Login attempt for:', req.body.email);
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body;
+    const email = rawEmail ? rawEmail.toLowerCase().trim() : rawEmail;
 
     if (!email || !password) {
       console.log('[LOGIN] Missing email or password');
@@ -109,7 +143,7 @@ const login = async (req, res) => {
     // Check if user exists
     const user = await User.findOne({ 
       where: { email },
-      attributes: ['id', 'name', 'email', 'password', 'role', 'isActive', 'forcePasswordReset']
+      attributes: ['id', 'name', 'email', 'password', 'role', 'isActive', 'forcePasswordReset', 'accountStatus']
     });
     if (!user) {
       console.log('[LOGIN] User not found:', email);
@@ -139,6 +173,15 @@ const login = async (req, res) => {
         success: false,
         message: 'Account is deactivated' 
       });
+    }
+
+    // Activate pending staff accounts on first login
+    if (user.accountStatus === 'pending_staff_registration') {
+      await User.update(
+        { accountStatus: 'active' },
+        { where: { id: user.id } }
+      );
+      console.log('[LOGIN] Staff account activated on first login:', email);
     }
 
     // Generate token
@@ -215,7 +258,8 @@ const getMe = async (req, res) => {
 const forgotPasswordOTP = async (req, res) => {
   try {
     console.log('[FORGOT_PASSWORD] Request for:', req.body.email);
-    const { email } = req.body;
+    const { email: rawEmail } = req.body;
+    const email = rawEmail ? rawEmail.toLowerCase().trim() : rawEmail;
 
     if (!email) {
       return res.status(400).json({
@@ -571,7 +615,8 @@ const generateTemporaryPassword = () => {
 const resetPasswordWithOTP = async (req, res) => {
   try {
     console.log('[RESET_PASSWORD_OTP] Request for:', req.body.email);
-    const { email, otp, newPassword } = req.body;
+    const { email: rawEmail, otp, newPassword } = req.body;
+    const email = rawEmail ? rawEmail.toLowerCase().trim() : rawEmail;
 
     if (!email || !otp || !newPassword) {
       return res.status(400).json({
@@ -647,7 +692,7 @@ const createStaff = async (req, res) => {
     const temporaryPassword = generateTemporaryPassword();
     console.log('[ADMIN] Generated temporary password:', temporaryPassword);
     
-    // Create new staff user
+    // Create new staff user with pending status until they accept the invite
     const newUser = await User.create({
       name,
       email,
@@ -655,25 +700,30 @@ const createStaff = async (req, res) => {
       phone,
       address,
       role: 'staff',
-      forcePasswordReset: true
+      forcePasswordReset: true,
+      isTemporaryPassword: true,
+      accountStatus: 'pending_staff_registration'
     });
 
     // Send email invitation
+    let emailSent = false;
     try {
       console.log(`[ADMIN] Sending staff invitation email to: ${email}`);
       await emailService.sendStaffInvitationEmail(newUser, temporaryPassword);
       console.log(`✅ Staff invitation email sent successfully to: ${email}`);
+      emailSent = true;
     } catch (emailError) {
       console.error('❌ Failed to send invitation email:', emailError);
-      // Don't fail the account creation if email fails
     }
 
     console.log(`[ADMIN] Staff account created by admin ${req.user.email} for ${email}`);
-    console.log('[ADMIN] Sending response with temporary password:', temporaryPassword);
 
     res.status(201).json({
       success: true,
-      message: 'Staff account created successfully. Invitation email sent.',
+      message: emailSent 
+        ? 'Staff account created successfully. Invitation email sent.'
+        : 'Staff account created but invitation email failed to send. Please share the temporary password manually.',
+      emailSent,
       user: {
         id: newUser.id,
         name: newUser.name,
