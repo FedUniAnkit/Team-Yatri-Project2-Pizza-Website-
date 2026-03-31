@@ -3,7 +3,7 @@
 
 A comprehensive web-based pizza ordering system for Komorebi Pizza Shop with separate interfaces for customers, staff, and administrators.
 
-## 🍕 Project Overview
+## Project Overview
 
 This project replaces expensive third-party ordering apps with a custom solution that provides:
 - **Cost savings** - No service fees to external platforms
@@ -11,7 +11,7 @@ This project replaces expensive third-party ordering apps with a custom solution
 - **Improved efficiency** - Streamlined order management
 - **Enhanced customer experience** - Direct communication with the restaurant
 
-## 👥 User Roles
+##  User Roles
 
 ### 1. **Admin Users**
 - Create, deactivate, reactivate, and remove users
@@ -42,7 +42,7 @@ This project replaces expensive third-party ordering apps with a custom solution
 - Place, cancel, and confirm orders
 - Send notes/messages to restaurant
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend
 - **React 19** - Modern UI library
@@ -64,7 +64,7 @@ This project replaces expensive third-party ordering apps with a custom solution
 - **Stripe** - Payment processing
 - **Socket.io** - Real-time communication
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 PPAP-main/
@@ -88,7 +88,7 @@ PPAP-main/
 └── tests/              # Test files
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -136,7 +136,7 @@ PPAP-main/
    npm start
    ```
 
-## 📋 Development Roadmap
+## Development Roadmap
 
 ### Phase 1: Foundation (Week 1)
 - [x] Project structure setup
@@ -168,7 +168,7 @@ PPAP-main/
 - [ ] Deployment setup
 - [ ] User training materials
 
-## 🔧 Available Scripts
+## Available Scripts
 
 ### Server
 - `npm start` - Start production server
@@ -179,25 +179,25 @@ PPAP-main/
 - `npm run build` - Build for production
 - `npm test` - Run tests
 
-## 📚 API Documentation
+## API Documentation
 
 API documentation will be available at `/docs/api-documentation.md` once development is complete.
 
-## 🤝 Contributing
+## Contributing
 
 This is an academic project for Komorebi Pizza Shop. Please follow the development roadmap and maintain code quality standards.
 
-## 📄 License
+## License
 
 This project is developed for educational purposes as part of a web development assignment.
 
-## 📞 Support
+## Support
 
 For technical support or questions about the project, please refer to the user manual in `/docs/user-manual.md`.
 
 ---
 
-**Project Status**: 🚧 In Development
+**Project Status**: In Development
 **Last Updated**: August 2025
 =======
 # Getting Started with Create React App
