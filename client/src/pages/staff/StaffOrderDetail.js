@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import orderService from '../../services/orderService';
+import messageService from '../../services/messageService';
+import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import './StaffOrderDetail.css';
 
@@ -17,12 +19,17 @@ const STATUS_CONFIG = {
 const StaffOrderDetail = () => {
   const { id } = useParams();
   const socket = useSocket();
+  const { user } = useAuth();
   const [order, setOrder]             = useState(null);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
   const [showCancel, setShowCancel]   = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [submitting, setSubmitting]   = useState(false);
+  const [messages, setMessages]       = useState([]);
+  const [newMessage, setNewMessage]   = useState('');
+  const [sendingMsg, setSendingMsg]   = useState(false);
+  const messagesEndRef = useRef(null);
 
   const fetchOrder = async () => {
     try {
@@ -36,7 +43,22 @@ const StaffOrderDetail = () => {
     }
   };
 
-  useEffect(() => { fetchOrder(); }, [id]);
+  useEffect(() => { fetchOrder(); fetchMessages(); }, [id]);
+
+  const fetchMessages = async () => {
+    try {
+      const response = await messageService.getMessages(id);
+      setMessages(response.data || []);
+    } catch (err) {
+      console.error('Failed to load messages:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   // Auto-refresh when this order is updated via socket
   useEffect(() => {
@@ -45,8 +67,36 @@ const StaffOrderDetail = () => {
       if (updated.id === id) setOrder(updated);
     };
     socket.on('order_updated', handleOrderUpdated);
-    return () => socket.off('order_updated', handleOrderUpdated);
+    const handleNewMessage = (msg) => {
+      if (msg.orderId === id || msg.orderId?.toString() === id) {
+        setMessages(prev => [...prev, msg]);
+      }
+    };
+    socket.on('new_message', handleNewMessage);
+    socket.emit('join_order', id);
+    return () => {
+      socket.off('order_updated', handleOrderUpdated);
+      socket.off('new_message', handleNewMessage);
+    };
   }, [socket, id]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !order?.customerId) return;
+    setSendingMsg(true);
+    try {
+      await messageService.sendMessage(id, {
+        content: newMessage.trim(),
+        receiverId: order.customerId,
+      });
+      setNewMessage('');
+      fetchMessages();
+      toast.success('Message sent & email delivered to customer!');
+    } catch (err) {
+      toast.error('Failed to send message.');
+    } finally {
+      setSendingMsg(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus) => {
     try {
@@ -214,6 +264,62 @@ const StaffOrderDetail = () => {
           </div>
         </div>
       )}
+
+      {/* Message / Chat Section */}
+      <div className="sod-section sod-messages-section">
+        <h2>💬 Messages to Customer</h2>
+        <p className="sod-messages-info">Messages sent here will be emailed to the customer at <strong>{order.customer?.email}</strong></p>
+        
+        <div className="sod-messages-list">
+          {messages.length === 0 ? (
+            <p className="sod-no-messages">No messages yet. Send a message to clarify the order.</p>
+          ) : (
+            messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`sod-message ${msg.Sender?.role === 'customer' ? 'sod-msg-customer' : 'sod-msg-staff'}`}
+              >
+                <div className="sod-msg-header">
+                  <strong>{msg.Sender?.name || 'Unknown'}</strong>
+                  <span className="sod-msg-role">{msg.Sender?.role}</span>
+                  <span className="sod-msg-time">
+                    {new Date(msg.createdAt).toLocaleString('en-AU', { dateStyle: 'short', timeStyle: 'short' })}
+                  </span>
+                  {msg.emailSent && <span className="sod-msg-email-badge">📧 Emailed</span>}
+                </div>
+                <p className="sod-msg-content">{msg.content}</p>
+              </div>
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="sod-message-input">
+          <textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message to the customer... (will be sent via email)"
+            rows={3}
+            maxLength={1000}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <div className="sod-message-actions">
+            <small>{newMessage.length}/1000</small>
+            <button
+              className="sod-btn sod-btn-send"
+              onClick={handleSendMessage}
+              disabled={sendingMsg || !newMessage.trim()}
+            >
+              {sendingMsg ? 'Sending...' : '📧 Send & Email Customer'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Cancel modal (S3-9) */}
       {showCancel && (

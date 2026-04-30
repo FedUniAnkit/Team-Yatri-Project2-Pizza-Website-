@@ -36,6 +36,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminContent from './pages/admin/AdminContent';
 import AdminNewsletter from './pages/admin/AdminNewsletter';
+import AdminPromoBanners from './pages/admin/AdminPromoBanners';
 import AdminPromotions from './pages/admin/AdminPromotions';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -67,27 +68,13 @@ const AppRoutes = () => {
     return <RequirePasswordReset />;
   }
 
-  // Default redirect based on role after login
-  if (user && window.location.pathname === '/login') {
-    switch (user.role) {
-      case 'admin':
-        return <Navigate to="/admin/dashboard" replace />;
-      case 'staff':
-        return <Navigate to="/staff/orders" replace />;
-      case 'customer':
-        return <Navigate to="/" replace />;
-      default:
-        return <Navigate to="/" replace />;
-    }
-  }
-
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/menu" element={<Menu />} />
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-      <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
 
@@ -120,6 +107,7 @@ const AppRoutes = () => {
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/content" element={<AdminContent />} />
         <Route path="/admin/newsletter" element={<AdminNewsletter />} />
+        <Route path="/admin/promo-banners" element={<AdminPromoBanners />} />
         <Route path="/admin/promotions" element={<AdminPromotions />} />
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
       </Route>

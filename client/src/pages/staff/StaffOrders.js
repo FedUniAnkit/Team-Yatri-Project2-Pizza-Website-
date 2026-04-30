@@ -28,6 +28,12 @@ const StaffOrders = () => {
     try {
       setLoading(true);
       const response = await orderService.getAllOrders();
+      console.log('Staff Orders - Full Response:', response);
+      console.log('Staff Orders - Orders Data:', response.data);
+      if (response.data && response.data.length > 0) {
+        console.log('First Order Customer Data:', response.data[0].customer);
+        console.log('First Order CustomerId:', response.data[0].customerId);
+      }
       setOrders(response.data || []);
     } catch (err) {
       setError('Failed to fetch orders.');

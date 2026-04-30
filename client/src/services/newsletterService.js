@@ -12,6 +12,18 @@ const newsletterService = {
     const response = await api.post('/newsletter/send-marketing-email', emailData);
     return response.data;
   },
+
+  // Send promotional email to customers/subscribers (Admin only)
+  sendPromotionalEmail: async (emailData) => {
+    const response = await api.post('/newsletter/send-promotional-email', emailData);
+    return response.data;
+  },
+
+  // Get accurate recipient counts (Admin only)
+  getRecipientCounts: async () => {
+    const response = await api.get('/newsletter/recipient-counts');
+    return response.data;
+  },
 };
 
 export default newsletterService;

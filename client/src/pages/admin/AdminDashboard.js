@@ -169,12 +169,24 @@ const AdminDashboard = () => {
     <div className="admin-dashboard">
       <div className="dashboard-header" style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,flexWrap:'wrap',marginBottom:'1rem'}}>
         <h2 style={{margin:0}}>Analytics Dashboard</h2>
-        <div style={{display:'flex',gap:12}}>
+        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
           <a href="/admin/products" className="nav-button" style={{padding:'10px 14px',background:'#16a34a',color:'#fff',borderRadius:6,textDecoration:'none'}}>
             Manage Products
           </a>
           <a href="/admin/users" className="nav-button" style={{padding:'10px 14px',background:'#1e88e5',color:'#fff',borderRadius:6,textDecoration:'none'}}>
             Manage Users
+          </a>
+          <a href="/admin/newsletter" className="nav-button" style={{padding:'10px 14px',background:'#e67e22',color:'#fff',borderRadius:6,textDecoration:'none'}}>
+            Newsletter
+          </a>
+          <a href="/admin/promo-banners" className="nav-button" style={{padding:'10px 14px',background:'#f39c12',color:'#fff',borderRadius:6,textDecoration:'none'}}>
+            Promo Banners
+          </a>
+          <a href="/admin/promotions" className="nav-button" style={{padding:'10px 14px',background:'#9b59b6',color:'#fff',borderRadius:6,textDecoration:'none'}}>
+            Promo Codes
+          </a>
+          <a href="/staff/orders" className="nav-button" style={{padding:'10px 14px',background:'#e74c3c',color:'#fff',borderRadius:6,textDecoration:'none'}}>
+            Orders
           </a>
         </div>
       </div>

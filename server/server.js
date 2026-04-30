@@ -22,7 +22,9 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const newsletterRoutes = require('./routes/newsletter');
 const messageRoutes = require('./routes/messageRoutes');
-// const paymentRoutes = require('./routes/paymentRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const promoCodeRoutes = require('./routes/promoCodeRoutes');
+const promoBannerRoutes = require('./routes/promoBannerRoutes');
 // const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
@@ -76,12 +78,15 @@ app.options('*', cors());
 // Trust proxy for rate limiting
 app.set('trust proxy', 1);
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+// Rate limiting - DISABLED FOR DEVELOPMENT
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: process.env.NODE_ENV === 'production' ? 100 : 1000 // Higher limit for development
+// });
+// app.use(limiter);
+
+// Stripe webhook route (must be before body parsing middleware)
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }), paymentRoutes);
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
@@ -103,6 +108,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/promo-codes', promoCodeRoutes);
+app.use('/api/promo-banner', promoBannerRoutes);
 
 // Simple ping route to verify /api/upload is reachable
 app.get('/api/upload/ping', (req, res) => res.json({ success: true, message: 'upload base ok' }));

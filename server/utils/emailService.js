@@ -186,6 +186,146 @@ const sendOTPEmail = async (user, otp) => {
   );
 };
 
+const sendNewOrderNotificationToStaff = async (staffMembers, order, customer) => {
+  if (!staffMembers || staffMembers.length === 0) {
+    console.log('No staff members to notify');
+    return;
+  }
+
+  const results = [];
+  
+  for (const staff of staffMembers) {
+    try {
+      await sendEmail(
+        staff.email,
+        `🍕 New Order Alert - #${order.orderNumber}`,
+        'staff-new-order',
+        {
+          staffName: staff.name,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          orderDate: new Date(order.createdAt).toLocaleString('en-AU', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          }),
+          orderTotal: parseFloat(order.totalAmount).toFixed(2),
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerPhone: customer.phone || null,
+          deliveryAddress: order.deliveryAddress || null,
+          paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
+          customerNotes: order.customerNotes || null,
+          items: (order.items || []).map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            customization: item.customization || null,
+          })),
+        }
+      );
+      results.push({ email: staff.email, success: true });
+      console.log(`New order notification sent to staff: ${staff.email}`);
+    } catch (error) {
+      console.error(`Failed to send new order notification to ${staff.email}:`, error);
+      results.push({ email: staff.email, success: false, error: error.message });
+    }
+  }
+  
+  return results;
+};
+
+const sendStaffMessageToCustomer = async (customer, staff, order, messageContent) => {
+  try {
+    const staffRoleDisplay = staff.role === 'admin' ? 'Administrator' : 'Staff Member';
+    
+    await sendEmail(
+      customer.email,
+      `Message from ${process.env.APP_NAME || 'Komorebi Pizza'} - Order #${order.orderNumber}`,
+      'staff-message',
+      {
+        customerName: customer.name,
+        staffName: staff.name,
+        staffRole: staffRoleDisplay,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        orderDate: new Date(order.createdAt).toLocaleDateString('en-AU', {
+          dateStyle: 'medium',
+        }),
+        orderStatus: order.status,
+        messageContent: messageContent,
+      }
+    );
+    
+    console.log(`Staff message sent to customer: ${customer.email} for order ${order.orderNumber}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Failed to send staff message to customer ${customer.email}:`, error);
+    throw new Error('Failed to send email to customer');
+  }
+};
+
+const sendPromotionalEmail = async (recipients, subject, content, promoCode = null) => {
+  if (!recipients || recipients.length === 0) {
+    throw new Error('No recipients provided for promotional email.');
+  }
+
+  const results = [];
+  
+  for (const recipient of recipients) {
+    try {
+      await sendEmail(
+        recipient.email,
+        subject,
+        'promotional-email',
+        {
+          subject: subject,
+          content: content,
+          promoCode: promoCode,
+          unsubscribeUrl: recipient.unsubscribeToken 
+            ? `${process.env.CLIENT_URL}/unsubscribe?email=${encodeURIComponent(recipient.email)}&token=${recipient.unsubscribeToken}`
+            : null,
+        }
+      );
+      results.push({ email: recipient.email, success: true });
+      console.log(`Promotional email sent to: ${recipient.email}`);
+    } catch (error) {
+      console.error(`Failed to send promotional email to ${recipient.email}:`, error);
+      results.push({ email: recipient.email, success: false, error: error.message });
+    }
+  }
+  
+  return results;
+};
+
+const sendCustomerReplyToStaff = async (staffMember, customer, order, messageContent) => {
+  try {
+    await sendEmail(
+      staffMember.email,
+      `Customer Reply - Order #${order.orderNumber}`,
+      'staff-message',
+      {
+        customerName: staffMember.name,
+        staffName: customer.name,
+        staffRole: 'Customer',
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        orderDate: new Date(order.createdAt).toLocaleDateString('en-AU', {
+          dateStyle: 'medium',
+        }),
+        orderStatus: order.status,
+        messageContent: messageContent,
+      }
+    );
+    
+    console.log(`Customer reply email sent to staff: ${staffMember.email} for order ${order.orderNumber}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Failed to send customer reply to staff ${staffMember.email}:`, error);
+    throw new Error('Failed to send email to staff');
+  }
+};
+
 module.exports = {
   sendEmail,
   sendPasswordResetEmail,
@@ -195,4 +335,8 @@ module.exports = {
   sendBulkMarketingEmail,
   sendStaffInvitationEmail,
   sendOTPEmail,
+  sendNewOrderNotificationToStaff,
+  sendStaffMessageToCustomer,
+  sendCustomerReplyToStaff,
+  sendPromotionalEmail,
 };

@@ -4,6 +4,9 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import orderService from '../services/orderService';
+import paymentService from '../services/paymentService';
+import promoCodeService from '../services/promoCodeService';
+import StripeCheckout from '../components/StripeCheckout';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -20,9 +23,58 @@ const Checkout = () => {
     promotionCode: '',
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState(null);
+  const [promoValidation, setPromoValidation] = useState(null);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [promoError, setPromoError] = useState('');
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Reset promo validation when code changes
+    if (name === 'promotionCode') {
+      setPromoValidation(null);
+      setPromoError('');
+    }
+  };
+
+  const validatePromoCode = async () => {
+    const code = formData.promotionCode.trim();
+    if (!code) {
+      setPromoValidation(null);
+      setPromoError('');
+      return;
+    }
+
+    setIsValidatingPromo(true);
+    setPromoError('');
+    
+    try {
+      const response = await promoCodeService.validatePromoCode(code, cartTotal);
+      setPromoValidation(response.data);
+      toast.success(`✅ ${response.message} You save $${response.data.discountAmount}!`);
+    } catch (error) {
+      setPromoValidation(null);
+      setPromoError(error.response?.data?.message || 'Invalid promo code');
+      toast.error(error.response?.data?.message || 'Invalid promo code');
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setFormData({ ...formData, promotionCode: '' });
+    setPromoValidation(null);
+    setPromoError('');
+  };
+
+  const calculateTotal = () => {
+    if (promoValidation) {
+      return (cartTotal - parseFloat(promoValidation.discountAmount)).toFixed(2);
+    }
+    return cartTotal.toFixed(2);
   };
 
   const handleSubmit = async (e) => {
@@ -53,15 +105,57 @@ const Checkout = () => {
 
     try {
       const response = await orderService.createOrder(orderData);
-      clearCart();
-      toast.success('Order placed successfully! Preparing your order...');
-      navigate(`/orders/${response.data.id}`);
+      
+      if (formData.paymentMethod === 'online') {
+        setPendingOrderId(response.data.id);
+        setShowStripeCheckout(true);
+      } else {
+        clearCart();
+        toast.success('Order placed successfully! Preparing your order...');
+        navigate(`/orders/${response.data.id}`);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to place order. Please try again.');
     } finally {
       setIsProcessing(false);
     }
   };
+
+  const handlePaymentSuccess = async (paymentIntent) => {
+    try {
+      await paymentService.confirmPayment(paymentIntent.id, pendingOrderId);
+      clearCart();
+      toast.success('Payment successful! Your order is confirmed.');
+      navigate(`/orders/${pendingOrderId}`);
+    } catch (err) {
+      toast.error('Payment succeeded but order confirmation failed. Please contact support.');
+      console.error('Payment confirmation error:', err);
+    }
+  };
+
+  const handlePaymentError = (error) => {
+    toast.error(error.message || 'Payment failed. Please try again.');
+    setShowStripeCheckout(false);
+  };
+
+  const handlePaymentCancel = () => {
+    setShowStripeCheckout(false);
+    setPendingOrderId(null);
+  };
+
+  if (showStripeCheckout) {
+    return (
+      <div className="checkout-container">
+        <StripeCheckout
+          amount={cartTotal}
+          orderId={pendingOrderId}
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentError}
+          onCancel={handlePaymentCancel}
+        />
+      </div>
+    );
+  }
 
   if (cartItems.length === 0 && !isProcessing) {
     return (
@@ -170,16 +264,65 @@ const Checkout = () => {
             </div>
           </div>
 
-          <div className="form-section">
-            <h2 className="section-title">🏷️ Promo Code (Optional)</h2>
-            <div className="promo-row">
-              <input
-                type="text"
-                name="promotionCode"
-                value={formData.promotionCode}
-                onChange={handleChange}
-                placeholder="Enter promo code"
-              />
+          <div className="form-section promo-section">
+            <h2 className="section-title">🏷️ Discount Code (Optional)</h2>
+            <div className="promo-container">
+              <div className="promo-input-row">
+                <input
+                  type="text"
+                  name="promotionCode"
+                  value={formData.promotionCode}
+                  onChange={handleChange}
+                  onBlur={() => formData.promotionCode && validatePromoCode()}
+                  placeholder="Enter discount code (e.g., SAVE20)"
+                  className={promoValidation ? 'valid' : promoError ? 'invalid' : ''}
+                  style={{ textTransform: 'uppercase' }}
+                />
+                <button
+                  type="button"
+                  onClick={validatePromoCode}
+                  disabled={!formData.promotionCode || isValidatingPromo}
+                  className="apply-promo-btn"
+                >
+                  {isValidatingPromo ? '⏳' : '✓ Apply'}
+                </button>
+              </div>
+              
+              {promoError && (
+                <div className="promo-error">
+                  ❌ {promoError}
+                </div>
+              )}
+              
+              {promoValidation && (
+                <div className="promo-success">
+                  <div className="promo-details">
+                    <span className="promo-code-badge">{promoValidation.code}</span>
+                    <span className="promo-description">{promoValidation.description}</span>
+                    <span className="promo-discount">-${promoValidation.discountAmount}</span>
+                  </div>
+                  <button type="button" onClick={removePromoCode} className="remove-promo-btn">
+                    ✕ Remove
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="order-summary">
+            <div className="summary-row">
+              <span>Subtotal:</span>
+              <span>${cartTotal.toFixed(2)}</span>
+            </div>
+            {promoValidation && (
+              <div className="summary-row discount">
+                <span>Discount ({promoValidation.code}):</span>
+                <span className="discount-amount">-${promoValidation.discountAmount}</span>
+              </div>
+            )}
+            <div className="summary-row total">
+              <span>Total:</span>
+              <span className="total-amount">${calculateTotal()}</span>
             </div>
           </div>
 
@@ -191,7 +334,7 @@ const Checkout = () => {
             {isProcessing ? (
               <span>⏳ Placing Order...</span>
             ) : (
-              <span>✅ Place Order — ${cartTotal.toFixed(2)}</span>
+              <span>✅ Place Order — ${calculateTotal()}</span>
             )}
           </button>
         </form>
@@ -219,9 +362,15 @@ const Checkout = () => {
             <span>Delivery</span>
             <span>Free</span>
           </div>
+          {promoValidation && (
+            <div className="summary-row discount">
+              <span>Discount ({promoValidation.code})</span>
+              <span className="discount-amount">-${promoValidation.discountAmount}</span>
+            </div>
+          )}
           <div className="summary-total-checkout">
             <strong>Total</strong>
-            <strong>${cartTotal.toFixed(2)}</strong>
+            <strong>${calculateTotal()}</strong>
           </div>
           <Link to="/cart" className="edit-cart-link">← Edit Cart</Link>
         </div>

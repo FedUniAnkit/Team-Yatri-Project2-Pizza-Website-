@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title><%= subject %> - <%= appName %></title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center; 
+            padding: 40px 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .promo-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #000;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content { 
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .promo-content {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #667eea;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            margin: 25px 0;
+            text-align: center;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .cta-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .feature-item {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .feature-item .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .feature-item h4 {
+            margin: 10px 0 5px 0;
+            color: #667eea;
+        }
+        .feature-item p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .highlight-box {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .highlight-box h3 {
+            color: #ff6b00;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .highlight-box p {
+            margin: 0;
+            font-size: 16px;
+        }
+        .footer { 
+            background: #f8f9fa;
+            padding: 30px; 
+            text-align: center;
+            font-size: 12px; 
+            color: #777;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        .unsubscribe {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        @media only screen and (max-width: 600px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍕 <%= appName %></h1>
+            <div class="promo-badge">Special Offer</div>
+        </div>
+        
+        <div class="content">
+            <h2><%= subject %></h2>
+            
+            <div class="promo-content">
+                <%- content %>
+            </div>
+
+            <% if (promoCode) { %>
+            <div class="highlight-box">
+                <h3>🎉 Your Promo Code</h3>
+                <p style="font-size: 28px; font-weight: bold; color: #667eea; margin: 10px 0;">
+                    <%= promoCode %>
+                </p>
+                <p>Use this code at checkout to claim your offer!</p>
+            </div>
+            <% } %>
+
+            <div class="cta-container">
+                <a href="<%= appUrl %>/menu" class="cta-button">
+                    Order Now & Save!
+                </a>
+            </div>
+
+            <div class="features">
+                <div class="feature-item">
+                    <div class="icon">🚀</div>
+                    <h4>Fast Delivery</h4>
+                    <p>Hot & fresh to your door</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">⭐</div>
+                    <h4>Quality Ingredients</h4>
+                    <p>Always the best</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">💯</div>
+                    <h4>Satisfaction Guaranteed</h4>
+                    <p>Love it or your money back</p>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🎁</div>
+                    <h4>Exclusive Deals</h4>
+                    <p>Members-only offers</p>
+                </div>
+            </div>
+
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                <strong>Why choose <%= appName %>?</strong><br>
+                We're committed to delivering the best pizza experience with fresh ingredients, 
+                fast delivery, and unbeatable prices. Join thousands of satisfied customers today!
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong><%= appName %></strong></p>
+            <p>Your favorite pizza, delivered fresh!</p>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Instagram">📷</a>
+                <a href="#" title="Twitter">🐦</a>
+            </div>
+
+            <p>© <%= currentYear %> <%= appName %>. All rights reserved.</p>
+            <p><a href="<%= appUrl %>"><%= appUrl %></a></p>
+            
+            <% if (unsubscribeUrl) { %>
+            <div class="unsubscribe">
+                <p>Don't want to receive these emails?</p>
+                <p><a href="<%= unsubscribeUrl %>">Unsubscribe</a></p>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

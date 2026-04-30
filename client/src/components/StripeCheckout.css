@@ -1,0 +1,97 @@
+.stripe-checkout-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stripe-checkout-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.stripe-checkout-header h2 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+.stripe-checkout-header p {
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.stripe-checkout-loading {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.stripe-checkout-error {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.stripe-checkout-error p {
+  color: #d32f2f;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.stripe-checkout-footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.btn-cancel,
+.btn-cancel-payment {
+  background: transparent;
+  color: #7f8c8d;
+  border: 1px solid #ddd;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover,
+.btn-cancel-payment:hover {
+  background: #f8f9fa;
+  border-color: #bbb;
+  color: #2c3e50;
+}
+
+.payment-security-info {
+  margin-top: 24px;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.payment-security-info p {
+  color: #95a5a6;
+  font-size: 13px;
+  margin: 0;
+}

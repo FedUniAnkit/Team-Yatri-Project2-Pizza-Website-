@@ -93,10 +93,6 @@ const Navbar = () => {
           }}>
             About Us
           </a>
-          
-          <Link to="/track-order" className={`nav-link ${isActive('/track-order') ? 'active' : ''}`}>
-            Track My Order
-          </Link>
 
           {isAuthenticated ? (
             <>

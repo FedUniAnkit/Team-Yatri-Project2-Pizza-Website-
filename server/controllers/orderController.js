@@ -38,16 +38,61 @@ const createOrder = async (req, res) => {
 
     if (promotionCode) {
       const promotion = await Promotion.findOne({ 
-        where: { code: promotionCode, isActive: true } 
+        where: { code: promotionCode.toUpperCase(), isActive: true } 
       }, { transaction });
 
       if (promotion) {
-        promotionId = promotion.id;
-        if (promotion.discountType === 'percentage') {
-          discountAmount = subtotal * (promotion.amount / 100);
-        } else {
-          discountAmount = promotion.amount;
+        // Validate promo code
+        const now = new Date();
+        
+        // Check date validity
+        if (promotion.startDate && new Date(promotion.startDate) > now) {
+          await transaction.rollback();
+          return res.status(400).json({ success: false, message: 'This promo code is not yet valid.' });
         }
+        if (promotion.endDate && new Date(promotion.endDate) < now) {
+          await transaction.rollback();
+          return res.status(400).json({ success: false, message: 'This promo code has expired.' });
+        }
+        
+        // Check usage limit
+        if (promotion.usageLimit && promotion.usageCount >= promotion.usageLimit) {
+          await transaction.rollback();
+          return res.status(400).json({ success: false, message: 'This promo code has reached its usage limit.' });
+        }
+        
+        // Check minimum order amount
+        if (subtotal < parseFloat(promotion.minimumOrderAmount)) {
+          await transaction.rollback();
+          return res.status(400).json({ 
+            success: false, 
+            message: `Minimum order amount of $${promotion.minimumOrderAmount} required to use this promo code.` 
+          });
+        }
+        
+        promotionId = promotion.id;
+        
+        // Calculate discount
+        if (promotion.discountType === 'percentage') {
+          discountAmount = subtotal * (parseFloat(promotion.amount) / 100);
+          // Apply max discount cap if set
+          if (promotion.maxDiscountAmount && discountAmount > parseFloat(promotion.maxDiscountAmount)) {
+            discountAmount = parseFloat(promotion.maxDiscountAmount);
+          }
+        } else {
+          discountAmount = parseFloat(promotion.amount);
+        }
+        
+        // Ensure discount doesn't exceed order amount
+        if (discountAmount > subtotal) {
+          discountAmount = subtotal;
+        }
+        
+        // Increment usage count
+        await promotion.increment('usageCount', { transaction });
+      } else {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: 'Invalid promo code.' });
       }
     }
 
@@ -71,27 +116,50 @@ const createOrder = async (req, res) => {
 
     await transaction.commit();
 
-    // Send order confirmation email
-    try {
-      const customer = await User.findByPk(customerId);
-      if (customer) {
-        // Ensure order data is plain for the email template
-        const orderDataForEmail = {
-          ...newOrder.get({ plain: true }),
-          items: newOrder.items, 
-        };
-        await emailService.sendOrderConfirmationEmail(customer, orderDataForEmail);
-      }
-    } catch (emailError) {
-      console.error('Failed to send order confirmation email:', emailError);
-      // Do not fail the request if email sending fails. The order is already created.
-    }
-
-        // Notify staff room of the new order
+    // Notify staff room of the new order via WebSocket
     const io = getIO();
     io.to('staff_room').emit('new_order', newOrder);
 
+    // Send response immediately - don't wait for emails
     res.status(201).json({ success: true, data: newOrder });
+
+    // Send emails in the background (non-blocking)
+    setImmediate(async () => {
+      try {
+        const customer = await User.findByPk(customerId);
+        if (customer) {
+          const orderDataForEmail = {
+            ...newOrder.get({ plain: true }),
+            items: newOrder.items, 
+          };
+          await emailService.sendOrderConfirmationEmail(customer, orderDataForEmail);
+        }
+      } catch (emailError) {
+        console.error('Failed to send order confirmation email:', emailError);
+      }
+
+      try {
+        const { Op } = require('sequelize');
+        const staffMembers = await User.findAll({
+          where: {
+            role: ['staff', 'admin'],
+            isActive: true,
+            id: { [Op.ne]: customerId } // Exclude the customer who placed the order
+          }
+        });
+        
+        if (staffMembers && staffMembers.length > 0) {
+          const customer = await User.findByPk(customerId);
+          const orderDataForEmail = {
+            ...newOrder.get({ plain: true }),
+            items: newOrder.items,
+          };
+          await emailService.sendNewOrderNotificationToStaff(staffMembers, orderDataForEmail, customer);
+        }
+      } catch (emailError) {
+        console.error('Failed to send staff notification emails:', emailError);
+      }
+    });
 
   } catch (error) {
     await transaction.rollback();

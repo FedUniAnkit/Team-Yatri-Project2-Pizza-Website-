@@ -1,5 +1,6 @@
 const { Message, Order, User } = require('../models');
 const { getIO } = require('../socket');
+const emailService = require('../utils/emailService');
 
 // @desc    Get all messages for a specific order
 // @route   GET /api/messages/:orderId
@@ -50,6 +51,29 @@ const sendMessage = async (req, res) => {
     const messageWithSender = await Message.findByPk(newMessage.id, {
         include: [{ model: User, as: 'Sender', attributes: ['id', 'name', 'role'] }],
     });
+
+    // Send email notification if staff is messaging a customer
+    try {
+      const sender = await User.findByPk(senderId);
+      const receiver = await User.findByPk(receiverId);
+      const order = await Order.findByPk(orderId);
+
+      // Send email if staff/admin is messaging a customer
+      if ((sender.role === 'staff' || sender.role === 'admin') && receiver.role === 'customer') {
+        await emailService.sendStaffMessageToCustomer(receiver, sender, order, content);
+        await newMessage.update({ emailSent: true });
+        console.log(`Email notification sent to customer ${receiver.email} for order ${order.orderNumber}`);
+      }
+      // Send email if customer is replying to staff/admin
+      if (sender.role === 'customer' && (receiver.role === 'staff' || receiver.role === 'admin')) {
+        await emailService.sendCustomerReplyToStaff(receiver, sender, order, content);
+        await newMessage.update({ emailSent: true });
+        console.log(`Customer reply email sent to staff ${receiver.email} for order ${order.orderNumber}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send email notification:', emailError);
+      // Don't fail the request if email sending fails
+    }
 
     // Emit the message via Socket.IO to the specific order room
     const io = getIO();

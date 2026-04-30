@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import './Auth.css';
@@ -10,6 +10,7 @@ const Login = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   
   const { login } = useAuth();
 
@@ -25,11 +26,18 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(formData);
+      const response = await login(formData);
       toast.success('Login successful!');
       
-      // Don't navigate manually - let App.js handle forcePasswordReset redirect
-      // If no forcePasswordReset, App.js will show default dashboard
+      // Navigate based on user role
+      const userRole = response?.user?.role || response?.role;
+      if (userRole === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (userRole === 'staff') {
+        navigate('/staff/orders');
+      } else {
+        navigate('/menu');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {

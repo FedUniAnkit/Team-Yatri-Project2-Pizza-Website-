@@ -91,6 +91,10 @@ const Order = sequelize.define('Order', {
   actualDeliveryTime: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+  stripePaymentIntentId: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   timestamps: true,

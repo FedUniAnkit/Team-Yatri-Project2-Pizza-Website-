@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import PromoBanner from '../components/PromoBanner';
 import './Home.css';
 import heroBackground1 from '../assets/delicious-homemade-pizza-wooden-cutting-board-tomatoes-ketchup-garlics-pepper-oil-bottle-green-bundle-dark-surface.jpg';
 import heroBackground2 from '../assets/tasty-cheesy-pizza-blue-with-fresh-vegetables.jpg';
@@ -77,6 +78,9 @@ const Home = () => {
 
   return (
     <div className="home-container">
+      {/* Promo Banner */}
+      <PromoBanner />
+
       {/* Hero Section */}
       <section className="hero" style={{ backgroundImage: `url(${heroImages[currentImageIndex]})` }}>
         <div className="hero-overlay"></div>

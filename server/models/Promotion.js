@@ -52,6 +52,47 @@ const Promotion = sequelize.define('Promotion', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  usageLimit: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: {
+      min: {
+        args: [0],
+        msg: 'Usage limit must be non-negative'
+      }
+    }
+  },
+  usageCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    validate: {
+      min: {
+        args: [0],
+        msg: 'Usage count must be non-negative'
+      }
+    }
+  },
+  minimumOrderAmount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0,
+    validate: {
+      min: {
+        args: [0],
+        msg: 'Minimum order amount must be non-negative'
+      }
+    }
+  },
+  maxDiscountAmount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    validate: {
+      min: {
+        args: [0],
+        msg: 'Maximum discount amount must be non-negative'
+      }
+    }
+  },
 }, {
   timestamps: true,
   tableName: 'Promotions',

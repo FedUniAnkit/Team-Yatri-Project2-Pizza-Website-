@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>New Order Alert - #<%= orderNumber %> - <%= appName %></title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header { 
+            text-align: center; 
+            padding: 20px 0; 
+            border-bottom: 3px solid #ff6b6b; 
+            margin-bottom: 20px; 
+        }
+        .header h1 {
+            color: #ff6b6b;
+            margin: 0;
+            font-size: 28px;
+        }
+        .alert-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .content { padding: 20px 0; }
+        .order-details { 
+            background: #fff9e6; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .order-details p {
+            margin: 8px 0;
+        }
+        .order-items { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0;
+            background: white;
+        }
+        .order-items th, 
+        .order-items td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-items th { 
+            background-color: #f8f9fa; 
+            font-weight: bold;
+            color: #495057;
+        }
+        .order-items tr:hover {
+            background-color: #f8f9fa;
+        }
+        .order-total {
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-top: 15px;
+            color: #28a745;
+        }
+        .customer-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .customer-info h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .delivery-address {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #9c27b0;
+        }
+        .delivery-address h3 {
+            margin-top: 0;
+            color: #7b1fa2;
+        }
+        .payment-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #4caf50;
+        }
+        .action-button {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .action-button:hover {
+            background: #ff5252;
+        }
+        .notes {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .footer { 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 2px solid #f0f0f0; 
+            font-size: 12px; 
+            color: #777; 
+            text-align: center;
+        }
+        .urgent {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍕 New Order Alert!</h1>
+            <div class="alert-badge">ACTION REQUIRED</div>
+        </div>
+        
+        <div class="content">
+            <p>Hello <%= staffName %>,</p>
+            <p class="urgent">A new order has just been placed and needs to be prepared!</p>
+            
+            <div class="order-details">
+                <p><strong>📋 Order Number:</strong> #<%= orderNumber %></p>
+                <p><strong>🕐 Order Time:</strong> <%= orderDate %></p>
+                <p><strong>📊 Status:</strong> <span style="color: #ff9800;">Pending</span></p>
+                <p><strong>💰 Order Total:</strong> <span style="color: #28a745; font-size: 1.2em;">$<%= orderTotal %></span></p>
+            </div>
+
+            <div class="customer-info">
+                <h3>👤 Customer Information</h3>
+                <p><strong>Name:</strong> <%= customerName %></p>
+                <p><strong>Email:</strong> <%= customerEmail %></p>
+                <% if (customerPhone) { %>
+                <p><strong>Phone:</strong> <%= customerPhone %></p>
+                <% } %>
+            </div>
+
+            <% if (deliveryAddress) { %>
+            <div class="delivery-address">
+                <h3>📍 Delivery Address</h3>
+                <p><%= deliveryAddress.street %></p>
+                <p><%= deliveryAddress.city %>, <%= deliveryAddress.postalCode %></p>
+            </div>
+            <% } %>
+
+            <div class="payment-info">
+                <h3>💳 Payment Information</h3>
+                <p><strong>Payment Method:</strong> 
+                    <% if (paymentMethod === 'cash') { %>
+                        💵 Cash on Delivery
+                    <% } else if (paymentMethod === 'card') { %>
+                        💳 Card at Door
+                    <% } else if (paymentMethod === 'online') { %>
+                        🌐 Online Payment
+                    <% } else { %>
+                        <%= paymentMethod %>
+                    <% } %>
+                </p>
+                <p><strong>Payment Status:</strong> 
+                    <% if (paymentStatus === 'paid') { %>
+                        <span style="color: #28a745;">✅ Paid</span>
+                    <% } else if (paymentStatus === 'pending') { %>
+                        <span style="color: #ff9800;">⏳ Pending</span>
+                    <% } else { %>
+                        <%= paymentStatus %>
+                    <% } %>
+                </p>
+            </div>
+            
+            <h3>🛒 Order Items</h3>
+            <table class="order-items">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% items.forEach(function(item) { %>
+                    <tr>
+                        <td>
+                            <strong><%= item.name %></strong>
+                            <% if (item.customization) { %>
+                                <br><small style="color: #666;"><%= JSON.stringify(item.customization) %></small>
+                            <% } %>
+                        </td>
+                        <td><%= item.quantity %></td>
+                        <td>$<%= parseFloat(item.price).toFixed(2) %></td>
+                        <td><strong>$<%= (parseFloat(item.price) * item.quantity).toFixed(2) %></strong></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            
+            <div class="order-total">
+                <p>Total: $<%= orderTotal %></p>
+            </div>
+
+            <% if (customerNotes) { %>
+            <div class="notes">
+                <h3>📝 Customer Notes</h3>
+                <p><em>"<%= customerNotes %>"</em></p>
+            </div>
+            <% } %>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="<%= appUrl %>/staff/orders/<%= orderId %>" class="action-button">
+                    View Order Details & Update Status
+                </a>
+            </div>
+
+            <p style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                <strong>⚡ Quick Actions:</strong><br>
+                • Confirm the order and start preparation<br>
+                • Update the order status as you progress<br>
+                • Contact the customer if you have any questions
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated notification from <%= appName %> Order Management System</p>
+            <p>© <%= currentYear %> <%= appName %>. All rights reserved.</p>
+            <p><a href="<%= appUrl %>"><%= appUrl %></a></p>
+        </div>
+    </div>
+</body>
+</html>

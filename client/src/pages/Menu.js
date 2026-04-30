@@ -34,6 +34,12 @@ const Menu = () => {
   const [customizationModal, setCustomizationModal] = useState(null);
   const { addToCart } = useCart();
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://via.placeholder.com/200x200?text=🍕';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `http://localhost:5000${imagePath}`;
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -303,7 +309,7 @@ const Menu = () => {
                 {product.isNew && <span className="badge badge-new">🆕 New</span>}
                 {!product.isAvailable && <div className="unavailable-overlay">Unavailable</div>}
                 {product.image ? (
-                  <img src={product.image} alt={product.name} className="product-image" />
+                  <img src={getImageUrl(product.image)} alt={product.name} className="product-image" />
                 ) : (
                   <div className="no-image">No Image</div>
                 )}
