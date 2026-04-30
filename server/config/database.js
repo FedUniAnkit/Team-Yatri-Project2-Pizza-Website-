@@ -31,7 +31,7 @@ const connectDB = async () => {
     console.log('PostgreSQL (Aiven) Connected successfully!');
     
     if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync({ force: true });
+      await sequelize.sync({ alter: true });
       console.log('Database synchronized');
     }
   } catch (error) {
