@@ -5,6 +5,7 @@ import orderService from '../../services/orderService';
 import messageService from '../../services/messageService';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import { generateStaffOrderReport } from '../../utils/generateStaffOrderReport';
 import './StaffOrderDetail.css';
 
 const STATUS_CONFIG = {
@@ -40,6 +41,17 @@ const StaffOrderDetail = () => {
       setError('Could not fetch order details.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportPdf = () => {
+    try {
+      console.log('Staff PDF data:', JSON.stringify(order, null, 2));
+      generateStaffOrderReport(order);
+      toast.success('Order PDF exported');
+    } catch (err) {
+      console.error('PDF export error:', err, err.stack);
+      toast.error(`Failed to generate PDF: ${err.message}`);
     }
   };
 
@@ -144,9 +156,14 @@ const StaffOrderDetail = () => {
             Placed {new Date(order.createdAt).toLocaleString('en-AU', { dateStyle: 'full', timeStyle: 'short' })}
           </p>
         </div>
-        <span className="sod-status-badge" style={{ background: cfg.color }}>
-          {cfg.icon} {cfg.label}
-        </span>
+        <div className="sod-header-actions">
+          <button className="sod-btn sod-btn-export" onClick={handleExportPdf}>
+            📄 Export PDF
+          </button>
+          <span className="sod-status-badge" style={{ background: cfg.color }}>
+            {cfg.icon} {cfg.label}
+          </span>
+        </div>
       </div>
 
       {/* Cancellation reason */}

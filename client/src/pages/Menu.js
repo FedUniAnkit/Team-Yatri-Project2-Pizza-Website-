@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import productService from '../services/productService';
+import favoriteService from '../services/favoriteService';
+import reviewService from '../services/reviewService';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiSearch, FiFilter, FiX, FiHeart, FiStar } from 'react-icons/fi';
+import { FaHeart, FaStar } from 'react-icons/fa';
 import PizzaCustomizationModal from '../components/PizzaCustomizationModal';
 import './Menu.css';
 
@@ -32,7 +37,10 @@ const Menu = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [customizationModal, setCustomizationModal] = useState(null);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [ratings, setRatings] = useState({});
   const { addToCart } = useCart();
+  const { user } = useAuth();
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/200x200?text=🍕';
@@ -45,12 +53,19 @@ const Menu = () => {
       try {
         setIsLoading(true);
         const response = await productService.getAllProducts();
-        console.log('Menu products loaded:', response.data);
-        response.data?.forEach(p => {
-          if (p.image) console.log(`Product ${p.name} image:`, p.image);
-        });
-        setProducts(response.data || []);
+        const loadedProducts = response.data || [];
+        setProducts(loadedProducts);
         setError(null);
+
+        // Fetch ratings for all products
+        const ratingsMap = {};
+        await Promise.all(loadedProducts.map(async (p) => {
+          try {
+            const res = await reviewService.getProductReviews(p.id);
+            ratingsMap[p.id] = { avg: res.data.averageRating, count: res.data.totalReviews };
+          } catch { ratingsMap[p.id] = { avg: 0, count: 0 }; }
+        }));
+        setRatings(ratingsMap);
       } catch (err) {
         setError('Failed to load menu. Please try again.');
         console.error(err);
@@ -60,6 +75,30 @@ const Menu = () => {
     };
     fetchProducts();
   }, []);
+
+  const isCustomer = user && user.role === 'customer';
+
+  useEffect(() => {
+    if (isCustomer) {
+      favoriteService.getFavoriteIds()
+        .then(res => setFavoriteIds(res.data.data || []))
+        .catch(() => {});
+    }
+  }, [isCustomer]);
+
+  const handleToggleFavorite = async (productId) => {
+    if (!isCustomer) return;
+    try {
+      const res = await favoriteService.toggleFavorite(productId);
+      if (res.data.favorited) {
+        setFavoriteIds(prev => [...prev, productId]);
+        toast.success('Added to favorites!');
+      } else {
+        setFavoriteIds(prev => prev.filter(id => id !== productId));
+        toast.info('Removed from favorites.');
+      }
+    } catch { toast.error('Failed to update favorite.'); }
+  };
 
   // Build categories dynamically from products with counts
   const categories = useMemo(() => {
@@ -179,6 +218,11 @@ const Menu = () => {
       <div className="menu-header">
         <h1>Our Menu</h1>
         <p>Freshly made with premium ingredients, delivered hot to your door</p>
+        {isCustomer && (
+          <Link to="/favorites" className="menu-fav-link">
+            <FaHeart /> My Favorites {favoriteIds.length > 0 && `(${favoriteIds.length})`}
+          </Link>
+        )}
       </div>
 
       <div className="menu-controls">
@@ -308,6 +352,15 @@ const Menu = () => {
                 {product.isPopular && <span className="badge badge-popular">⭐ Popular</span>}
                 {product.isNew && <span className="badge badge-new">🆕 New</span>}
                 {!product.isAvailable && <div className="unavailable-overlay">Unavailable</div>}
+                {isCustomer && (
+                  <button
+                    className={`fav-btn ${favoriteIds.includes(product.id) ? 'fav-active' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); handleToggleFavorite(product.id); }}
+                    title={favoriteIds.includes(product.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {favoriteIds.includes(product.id) ? <FaHeart /> : <FiHeart />}
+                  </button>
+                )}
                 {product.image ? (
                   <img src={getImageUrl(product.image)} alt={product.name} className="product-image" />
                 ) : (
@@ -316,6 +369,13 @@ const Menu = () => {
               </div>
               <div className="product-info">
                 <h3 className="product-name">{product.name}</h3>
+                {ratings[product.id]?.count > 0 && (
+                  <div className="product-rating">
+                    <FaStar className="star-icon" />
+                    <span className="rating-value">{ratings[product.id].avg}</span>
+                    <span className="rating-count">({ratings[product.id].count})</span>
+                  </div>
+                )}
                 {product.description && (
                   <p className="product-description">{product.description}</p>
                 )}

@@ -326,6 +326,29 @@ const sendCustomerReplyToStaff = async (staffMember, customer, order, messageCon
   }
 };
 
+const sendNewsletterWelcome = async (email, unsubscribeToken) => {
+  try {
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    const unsubscribeUrl = `${serverUrl}/api/newsletter/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubscribeToken}`;
+    
+    await sendEmail(
+      email,
+      `Welcome to ${process.env.APP_NAME || 'Komorebi Pizza'} Newsletter!`,
+      'newsletter-welcome',
+      {
+        email,
+        unsubscribeUrl,
+      }
+    );
+    
+    console.log(`Newsletter welcome email sent to: ${email}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`Failed to send newsletter welcome to ${email}:`, error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendEmail,
   sendPasswordResetEmail,
@@ -339,4 +362,5 @@ module.exports = {
   sendStaffMessageToCustomer,
   sendCustomerReplyToStaff,
   sendPromotionalEmail,
+  sendNewsletterWelcome,
 };

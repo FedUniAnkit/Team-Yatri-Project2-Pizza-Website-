@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import orderService from '../../services/orderService';
 import { useSocket } from '../../context/SocketContext';
+import { useCart } from '../../context/CartContext';
+import { toast } from 'react-toastify';
 import './MyOrders.css';
 
 const STATUS_LABELS = {
@@ -15,9 +17,28 @@ const STATUS_LABELS = {
 
 const MyOrders = () => {
   const socket = useSocket();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const handleReorder = (order) => {
+    const items = Array.isArray(order.items) ? order.items : [];
+    if (items.length === 0) { toast.error('No items to reorder.'); return; }
+    items.forEach(item => {
+      addToCart({
+        id: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        customization: item.customization,
+      });
+    });
+    toast.success(`${items.length} item(s) added to cart!`);
+    navigate('/cart');
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -91,7 +112,12 @@ const MyOrders = () => {
 
                 <div className="order-card-footer">
                   <span className="order-total">${parseFloat(order.totalAmount).toFixed(2)}</span>
-                  <Link to={`/orders/${order.id}`} className="btn-view-order">View Details →</Link>
+                  <div className="order-card-actions">
+                    {['delivered', 'cancelled'].includes(order.status) && (
+                      <button className="btn-reorder" onClick={() => handleReorder(order)}>🔄 Reorder</button>
+                    )}
+                    <Link to={`/orders/${order.id}`} className="btn-view-order">View Details →</Link>
+                  </div>
                 </div>
               </div>
             );

@@ -18,6 +18,9 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
+import TermsAndConditions from './pages/TermsAndConditions';
+import ContactUs from './pages/ContactUs';
+import AboutUs from './pages/AboutUs';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -30,6 +33,7 @@ import RequirePasswordReset from './pages/auth/RequirePasswordReset';
 import UserSettings from './pages/user/Settings';
 import MyOrders from './pages/customer/MyOrders';
 import OrderDetails from './pages/customer/OrderDetails';
+import MyFavorites from './pages/customer/MyFavorites';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -76,6 +80,9 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/terms" element={<TermsAndConditions />} />
+      <Route path="/contact" element={<ContactUs />} />
+      <Route path="/about" element={<AboutUs />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* Common Protected Routes */}
@@ -85,6 +92,7 @@ const AppRoutes = () => {
         <Route path="/settings" element={<UserSettings />} />
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
+        <Route path="/favorites" element={<MyFavorites />} />
         {/* Legacy / dashboard / track redirects */}
         <Route path="/customer/dashboard" element={<Navigate to="/my-orders" replace />} />
         <Route path="/customer/orders/:id" element={<OrderDetails />} />

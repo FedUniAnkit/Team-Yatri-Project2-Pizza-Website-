@@ -23,6 +23,17 @@ const analyticsService = {
     }
   },
 
+  // Get product trend movers/decliners
+  getProductTrends: async (limit = 5, period = 'month') => {
+    try {
+      const response = await api.get(`/analytics/product-trends?limit=${limit}&period=${period}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching product trends:', error);
+      throw error;
+    }
+  },
+
   // Get dashboard summary statistics
   getDashboardStats: async () => {
     try {

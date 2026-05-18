@@ -72,6 +72,12 @@
 }
 .od-btn-cancel:hover:not(:disabled) { background: #c0392b; }
 .od-btn-cancel:disabled { background: #ccc; cursor: not-allowed; }
+.od-btn-invoice {
+  padding: 0.7rem 1.5rem; background: #27ae60; color: #fff;
+  border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.od-btn-invoice:hover { background: #229954; }
 
 /* ===== MESSAGES SECTION ===== */
 .od-messages-section h2 { margin-bottom: 0.75rem; }
@@ -124,8 +130,122 @@
 .od-btn-reply:hover:not(:disabled) { background: #2980b9; }
 .od-btn-reply:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ===== REVIEW SECTION ===== */
+.od-review-section { background: #fffdf5; border: 1px solid #f5e6b8; }
+.od-review-list { display: flex; flex-direction: column; gap: 14px; }
+.od-review-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 12px 16px;
+  flex-wrap: wrap; gap: 10px;
+}
+.od-review-name { font-weight: 600; color: #2c3e50; font-size: 0.95rem; min-width: 120px; }
+.od-review-done { color: #27ae60; font-size: 0.85rem; font-weight: 600; }
+.od-review-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
+.od-star-select { display: flex; gap: 2px; }
+.od-star-btn {
+  background: none; border: none; font-size: 1.4rem; color: #ddd;
+  cursor: pointer; transition: color 0.15s, transform 0.15s; padding: 0 2px;
+}
+.od-star-btn:hover, .od-star-btn.active { color: #f39c12; transform: scale(1.15); }
+.od-review-input {
+  padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px;
+  font-size: 0.85rem; width: 200px; max-width: 100%;
+}
+.od-review-input:focus { outline: none; border-color: #f39c12; }
+.od-review-submit {
+  background: #f39c12; color: #fff; border: none; padding: 6px 16px;
+  border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.od-review-submit:hover { background: #e67e22; }
+
+/* ===== ORDER TRACKER ===== */
+.od-tracker {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  margin-bottom: 1.2rem;
+  position: relative;
+}
+
+.tracker-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.tracker-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ecf0f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  border: 3px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.tracker-step.completed .tracker-icon {
+  background: #27ae60;
+  border-color: #27ae60;
+  box-shadow: 0 0 12px rgba(39, 174, 96, 0.3);
+}
+
+.tracker-step.active .tracker-icon {
+  background: #fff3e0;
+  border-color: #f39c12;
+  box-shadow: 0 0 12px rgba(243, 156, 18, 0.4);
+  animation: pulse-tracker 2s infinite;
+}
+
+@keyframes pulse-tracker {
+  0%, 100% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(243, 156, 18, 0.7); }
+}
+
+.tracker-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #bbb;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tracker-step.completed .tracker-label { color: #27ae60; }
+.tracker-step.active .tracker-label { color: #f39c12; font-weight: 700; }
+
+.tracker-line {
+  position: absolute;
+  top: 24px;
+  left: 55%;
+  width: 90%;
+  height: 3px;
+  background: #e0e0e0;
+  z-index: 0;
+  transition: background 0.3s ease;
+}
+
+.tracker-line.completed {
+  background: #27ae60;
+}
+
 @media (max-width: 640px) {
   .od-header    { flex-direction: column; gap: 1rem; }
   .od-meta-grid { grid-template-columns: 1fr; }
   .od-message   { max-width: 95%; }
+  .od-tracker { padding: 1.2rem 0.5rem; }
+  .tracker-icon { width: 36px; height: 36px; font-size: 1rem; }
+  .tracker-label { font-size: 0.65rem; }
+  .tracker-line { top: 18px; }
 }

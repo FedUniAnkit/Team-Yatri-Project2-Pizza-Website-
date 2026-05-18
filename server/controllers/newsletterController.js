@@ -1,5 +1,6 @@
 const { NewsletterSubscription, User } = require('../models');
 const emailService = require('../utils/emailService');
+const crypto = require('crypto');
 
 // @desc    Subscribe to the newsletter
 // @route   POST /api/newsletter/subscribe
@@ -11,18 +12,45 @@ const subscribe = async (req, res) => {
   }
 
   try {
-    const [subscription, created] = await NewsletterSubscription.findOrCreate({
-      where: { email },
-      defaults: { isActive: true },
-    });
+    const existing = await NewsletterSubscription.findOne({ where: { email } });
 
-    if (!created && !subscription.isActive) {
-      // Resubscribe if they were previously inactive
-      subscription.isActive = true;
-      await subscription.save();
+    if (existing && existing.isActive) {
+      return res.status(400).json({ success: false, message: 'This email is already subscribed to our newsletter.' });
     }
 
-    res.status(201).json({ success: true, message: 'Thank you for subscribing!' });
+    if (existing && !existing.isActive) {
+      // Resubscribe
+      existing.isActive = true;
+      if (!existing.unsubscribeToken) {
+        existing.unsubscribeToken = crypto.randomBytes(32).toString('hex');
+      }
+      await existing.save();
+
+      // Send welcome-back email in background
+      setImmediate(async () => {
+        try {
+          await emailService.sendNewsletterWelcome(email, existing.unsubscribeToken);
+        } catch (err) {
+          console.error('Failed to send welcome-back email:', err);
+        }
+      });
+
+      return res.status(200).json({ success: true, message: 'Welcome back! You have been re-subscribed to our newsletter.' });
+    }
+
+    // New subscription
+    const subscription = await NewsletterSubscription.create({ email, isActive: true });
+
+    // Send welcome email in background
+    setImmediate(async () => {
+      try {
+        await emailService.sendNewsletterWelcome(email, subscription.unsubscribeToken);
+      } catch (err) {
+        console.error('Failed to send welcome email:', err);
+      }
+    });
+
+    res.status(201).json({ success: true, message: 'Thank you for subscribing! A confirmation email has been sent.' });
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ success: false, message: 'This email is already subscribed.' });
@@ -31,6 +59,40 @@ const subscribe = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
     }
     res.status(500).json({ success: false, message: 'Subscription failed. Please try again later.', error: error.message });
+  }
+};
+
+// @desc    Unsubscribe from the newsletter
+// @route   GET /api/newsletter/unsubscribe
+// @access  Public
+const unsubscribe = async (req, res) => {
+  const { email, token } = req.query;
+
+  if (!email || !token) {
+    return res.status(400).json({ success: false, message: 'Invalid unsubscribe link.' });
+  }
+
+  try {
+    const subscription = await NewsletterSubscription.findOne({
+      where: { email, unsubscribeToken: token }
+    });
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: 'Subscription not found or invalid link.' });
+    }
+
+    if (!subscription.isActive) {
+      return res.status(200).json({ success: true, message: 'You are already unsubscribed.' });
+    }
+
+    subscription.isActive = false;
+    await subscription.save();
+
+    // Redirect to a nice page or return JSON
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    res.redirect(`${clientUrl}/?unsubscribed=true`);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to unsubscribe.', error: error.message });
   }
 };
 
@@ -194,6 +256,7 @@ const getRecipientCounts = async (req, res) => {
 
 module.exports = {
   subscribe,
+  unsubscribe,
   getAllSubscribers,
   sendMarketingEmail,
   sendPromotionalEmailToCustomers,

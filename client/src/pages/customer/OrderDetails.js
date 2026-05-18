@@ -5,6 +5,8 @@ import orderService from '../../services/orderService';
 import messageService from '../../services/messageService';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import { generateInvoicePDF } from '../../utils/generateInvoice';
+import reviewService from '../../services/reviewService';
 import './OrderDetails.css';
 
 const STATUS_LABELS = {
@@ -30,6 +32,8 @@ const OrderDetails = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
+  const [reviewData, setReviewData] = useState({});
+  const [submittedReviews, setSubmittedReviews] = useState({});
   const messagesEndRef = useRef(null);
 
   const fetchMessages = async () => {
@@ -124,6 +128,39 @@ const OrderDetails = () => {
     }
   };
 
+  const handleDownloadInvoice = () => {
+    try {
+      const customerData = order.customer || user;
+      console.log('Invoice data:', { order, customerData });
+      if (!customerData || !customerData.name) {
+        toast.error('Customer data missing. Cannot generate invoice.');
+        return;
+      }
+      generateInvoicePDF(order, customerData);
+      toast.success('Invoice downloaded successfully!');
+    } catch (err) {
+      console.error('Failed to generate invoice:', err, err.stack);
+      toast.error(`Failed to generate invoice: ${err.message}`);
+    }
+  };
+
+  const handleSubmitReview = async (productId) => {
+    const data = reviewData[productId];
+    if (!data?.rating) { toast.error('Please select a rating.'); return; }
+    try {
+      await reviewService.createReview({
+        productId,
+        orderId: id,
+        rating: data.rating,
+        comment: data.comment || '',
+      });
+      setSubmittedReviews(prev => ({ ...prev, [productId]: true }));
+      toast.success('Review submitted! Thank you.');
+    } catch (err) {
+      toast.error('Failed to submit review.');
+    }
+  };
+
   if (loading) return <div className="od-loading">Loading order details...</div>;
   if (error)   return <div className="od-error">{error}</div>;
   if (!order)  return <div className="od-error">Order not found.</div>;
@@ -146,6 +183,35 @@ const OrderDetails = () => {
           {statusInfo.icon} {statusInfo.label}
         </span>
       </div>
+
+      {/* Order Tracking Progress Bar */}
+      {order.status !== 'cancelled' && (
+        <div className="od-tracker">
+          {[
+            { key: 'pending',   label: 'Order Placed', icon: '📋' },
+            { key: 'confirmed', label: 'Confirmed',    icon: '✅' },
+            { key: 'preparing', label: 'Preparing',    icon: '👨‍🍳' },
+            { key: 'ready',     label: 'Ready',        icon: '🛍️' },
+            { key: 'delivered', label: 'Delivered',    icon: '🎉' },
+          ].map((step, idx, arr) => {
+            const statusOrder = ['pending', 'confirmed', 'preparing', 'ready', 'delivered'];
+            const currentIdx = statusOrder.indexOf(order.status);
+            const stepIdx = statusOrder.indexOf(step.key);
+            const isCompleted = stepIdx < currentIdx;
+            const isActive = stepIdx === currentIdx;
+
+            return (
+              <div key={step.key} className={`tracker-step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}>
+                <div className="tracker-icon">{step.icon}</div>
+                <div className="tracker-label">{step.label}</div>
+                {idx < arr.length - 1 && (
+                  <div className={`tracker-line ${isCompleted ? 'completed' : ''}`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Cancellation reason (if cancelled by staff) */}
       {order.status === 'cancelled' && order.cancellationReason && (
@@ -259,9 +325,62 @@ const OrderDetails = () => {
         </div>
       )}
 
+      {/* Rate Your Order (only for delivered orders) */}
+      {order.status === 'delivered' && items.length > 0 && (
+        <div className="od-section od-review-section">
+          <h2>⭐ Rate Your Order</h2>
+          <div className="od-review-list">
+            {items.map((item, idx) => (
+              <div key={idx} className="od-review-item">
+                <span className="od-review-name">{item.name}</span>
+                {submittedReviews[item.productId] ? (
+                  <span className="od-review-done">✅ Review submitted</span>
+                ) : (
+                  <div className="od-review-form">
+                    <div className="od-star-select">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          className={`od-star-btn ${(reviewData[item.productId]?.rating || 0) >= star ? 'active' : ''}`}
+                          onClick={() => setReviewData(prev => ({
+                            ...prev,
+                            [item.productId]: { ...prev[item.productId], rating: star }
+                          }))}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Write a short review (optional)"
+                      className="od-review-input"
+                      value={reviewData[item.productId]?.comment || ''}
+                      onChange={(e) => setReviewData(prev => ({
+                        ...prev,
+                        [item.productId]: { ...prev[item.productId], comment: e.target.value }
+                      }))}
+                    />
+                    <button className="od-review-submit" onClick={() => handleSubmitReview(item.productId)}>
+                      Submit
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="od-actions">
         <Link to="/my-orders" className="od-btn-secondary">← Back to My Orders</Link>
+        <button
+          className="od-btn-invoice"
+          onClick={handleDownloadInvoice}
+        >
+          📄 Download Invoice
+        </button>
         {canCancel && !confirmCancel && (
           <button
             className="od-btn-cancel"

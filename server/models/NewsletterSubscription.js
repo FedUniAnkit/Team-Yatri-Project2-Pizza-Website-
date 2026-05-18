@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const crypto = require('crypto');
 
 class NewsletterSubscription extends Model {}
 
@@ -22,10 +23,19 @@ NewsletterSubscription.init({
     defaultValue: true,
     allowNull: false,
   },
+  unsubscribeToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   sequelize,
   modelName: 'NewsletterSubscription',
   timestamps: true,
+  hooks: {
+    beforeCreate: (subscription) => {
+      subscription.unsubscribeToken = crypto.randomBytes(32).toString('hex');
+    },
+  },
 });
 
 module.exports = NewsletterSubscription;

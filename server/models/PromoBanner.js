@@ -33,6 +33,30 @@ const PromoBanner = sequelize.define('PromoBanner', {
     type: DataTypes.ENUM('gradient', 'festive', 'elegant', 'fresh'),
     defaultValue: 'gradient'
   },
+  imageUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null,
+    validate: {
+      len: [0, 500]
+    }
+  },
+  ctaText: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null,
+    validate: {
+      len: [0, 80]
+    }
+  },
+  ctaLink: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null,
+    validate: {
+      len: [0, 255]
+    }
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: false

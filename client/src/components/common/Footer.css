@@ -275,3 +275,99 @@
     border-radius: 0 0 4px 4px;
   }
 }
+
+/* Newsletter Popup Modal */
+.newsletter-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popupFadeIn 0.3s ease;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popupSlideUp {
+  from { transform: translateY(30px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.newsletter-popup {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 36px 30px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: popupSlideUp 0.4s ease;
+}
+
+.newsletter-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.newsletter-popup-close:hover {
+  color: #333;
+}
+
+.newsletter-popup-icon {
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+}
+
+.newsletter-popup-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.newsletter-popup-title.success { color: #27ae60; }
+.newsletter-popup-title.info { color: #3498db; }
+.newsletter-popup-title.error { color: #e74c3c; }
+
+.newsletter-popup-message {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 24px;
+}
+
+.newsletter-popup-btn {
+  border: none;
+  padding: 12px 36px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.newsletter-popup-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.newsletter-popup-btn.success { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+.newsletter-popup-btn.info { background: linear-gradient(135deg, #2980b9, #3498db); }
+.newsletter-popup-btn.error { background: linear-gradient(135deg, #c0392b, #e74c3c); }

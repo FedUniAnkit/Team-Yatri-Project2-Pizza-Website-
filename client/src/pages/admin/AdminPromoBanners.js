@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import promoBannerService from '../../services/promoBannerService';
+import uploadService from '../../services/uploadService';
 import { toast } from 'react-toastify';
 import './AdminPromoBanners.css';
 
@@ -9,11 +10,15 @@ const AdminPromoBanners = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingBanner, setEditingBanner] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     message: '',
     promoCode: '',
     style: 'gradient',
+    imageUrl: '',
+    ctaText: '',
+    ctaLink: '',
     isActive: false,
     startDate: '',
     endDate: '',
@@ -49,12 +54,40 @@ const AdminPromoBanners = () => {
       message: '',
       promoCode: '',
       style: 'gradient',
+      imageUrl: '',
+      ctaText: '',
+      ctaLink: '',
       isActive: false,
       startDate: '',
       endDate: '',
     });
     setEditingBanner(null);
     setShowForm(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Please upload an image smaller than 2MB.');
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const response = await uploadService.uploadImage(file);
+      const url = response.data?.url || response.url;
+      setFormData(prev => ({ ...prev, imageUrl: url }));
+      toast.success('Image uploaded!');
+    } catch (err) {
+      toast.error('Failed to upload image.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -66,6 +99,9 @@ const AdminPromoBanners = () => {
         message: formData.message,
         promoCode: formData.promoCode || null,
         style: formData.style,
+        imageUrl: formData.imageUrl || null,
+        ctaText: formData.ctaText || null,
+        ctaLink: formData.ctaLink || null,
         isActive: formData.isActive,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
@@ -93,6 +129,9 @@ const AdminPromoBanners = () => {
       message: banner.message,
       promoCode: banner.promoCode || '',
       style: banner.style,
+      imageUrl: banner.imageUrl || '',
+      ctaText: banner.ctaText || '',
+      ctaLink: banner.ctaLink || '',
       isActive: banner.isActive,
       startDate: banner.startDate ? new Date(banner.startDate).toISOString().split('T')[0] : '',
       endDate: banner.endDate ? new Date(banner.endDate).toISOString().split('T')[0] : '',
@@ -199,6 +238,49 @@ const AdminPromoBanners = () => {
 
             <div className="form-row">
               <div className="form-group">
+                <label>Banner Image</label>
+                {formData.imageUrl ? (
+                  <div className="banner-image-preview">
+                    <img src={formData.imageUrl} alt="Banner" />
+                    <button type="button" onClick={handleRemoveImage} className="btn-remove-image">Remove</button>
+                  </div>
+                ) : (
+                  <label className="image-upload-tile">
+                    <input type="file" accept="image/*" onChange={handleImageUpload} hidden />
+                    {uploadingImage ? 'Uploading…' : 'Upload Image'}
+                  </label>
+                )}
+                <small>Recommended size: 1600×400 px, JPG/PNG under 2MB.</small>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>CTA Button Text</label>
+                <input
+                  type="text"
+                  name="ctaText"
+                  value={formData.ctaText}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Shop Now"
+                  maxLength={80}
+                />
+              </div>
+              <div className="form-group">
+                <label>CTA Link</label>
+                <input
+                  type="text"
+                  name="ctaLink"
+                  value={formData.ctaLink}
+                  onChange={handleInputChange}
+                  placeholder="e.g., /menu or https://promo"
+                  maxLength={255}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
                 <label>Start Date (Optional)</label>
                 <input
                   type="date"
@@ -254,6 +336,12 @@ const AdminPromoBanners = () => {
                 <h3>{banner.title}</h3>
                 <p>{banner.message}</p>
                 {banner.promoCode && <span className="banner-code-display">Code: {banner.promoCode}</span>}
+                {banner.ctaText && <span className="banner-cta-display">CTA: {banner.ctaText}</span>}
+                {banner.imageUrl && (
+                  <div className="banner-image-thumb">
+                    <img src={banner.imageUrl} alt={banner.title} />
+                  </div>
+                )}
                 <div className="banner-meta">
                   <span className="banner-style">{banner.style}</span>
                   {banner.startDate && <span>Start: {new Date(banner.startDate).toLocaleDateString()}</span>}

@@ -28,10 +28,11 @@ const sequelize = new Sequelize(
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('PostgreSQL (Aiven) Connected successfully!');
+    console.log('PostgreSQL (Neon) Connected successfully!');
     
+    // Temporarily enable sync for Neon setup
     if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: false });
       console.log('Database synchronized');
     }
   } catch (error) {

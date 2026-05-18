@@ -25,6 +25,8 @@ const messageRoutes = require('./routes/messageRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const promoCodeRoutes = require('./routes/promoCodeRoutes');
 const promoBannerRoutes = require('./routes/promoBannerRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const favoriteRoutes = require('./routes/favoriteRoutes');
 // const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
@@ -111,6 +113,8 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/promo-codes', promoCodeRoutes);
 app.use('/api/promo-banner', promoBannerRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // Simple ping route to verify /api/upload is reachable
 app.get('/api/upload/ping', (req, res) => res.json({ success: true, message: 'upload base ok' }));

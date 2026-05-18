@@ -34,8 +34,23 @@ const PromoBanner = () => {
 
   if (!banner || dismissed) return null;
 
+  const ctaText = banner.ctaText || 'Order Now';
+  const ctaLink = banner.ctaLink || '/menu';
+  const isExternal = /^https?:\/\//i.test(ctaLink);
+
+  const bannerStyle = banner.imageUrl
+    ? {
+        backgroundImage: `linear-gradient(120deg, rgba(0,0,0,0.75), rgba(0,0,0,0.45)), url(${banner.imageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : {};
+
   return (
-    <div className={`promo-banner promo-banner-${banner.style || 'gradient'}`}>
+    <div
+      className={`promo-banner promo-banner-${banner.style || 'gradient'} ${banner.imageUrl ? 'promo-banner-image' : ''}`}
+      style={bannerStyle}
+    >
       <div className="promo-banner-content">
         <div className="promo-banner-sparkle">✨</div>
         <div className="promo-banner-text">
@@ -47,9 +62,15 @@ const PromoBanner = () => {
             </span>
           )}
         </div>
-        <Link to="/menu" className="promo-banner-cta">
-          Order Now
-        </Link>
+        {isExternal ? (
+          <a href={ctaLink} target="_blank" rel="noopener noreferrer" className="promo-banner-cta">
+            {ctaText}
+          </a>
+        ) : (
+          <Link to={ctaLink} className="promo-banner-cta">
+            {ctaText}
+          </Link>
+        )}
       </div>
       <button className="promo-banner-close" onClick={handleDismiss} aria-label="Dismiss">
         ✕

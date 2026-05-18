@@ -8,6 +8,11 @@
   background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
   padding: 1.5rem; margin-bottom: 1.2rem;
 }
+.sod-header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
 .sod-header-left { display: flex; flex-direction: column; gap: 0.2rem; }
 .sod-back { font-size: 0.85rem; color: #3498db; text-decoration: none; margin-bottom: 0.3rem; }
 .sod-back:hover { text-decoration: underline; }
@@ -87,6 +92,7 @@
 .sod-btn-ready    { background: #1abc9c; color: #fff; }
 .sod-btn-deliver  { background: #3498db; color: #fff; }
 .sod-btn-cancel   { background: #e74c3c; color: #fff; }
+.sod-btn-export   { background: #2c3e50; color: #fff; }
 .sod-btn-back     { background: #f0f0f0; color: #555; }
 
 /* Cancel modal (shared styles with StaffOrders) */

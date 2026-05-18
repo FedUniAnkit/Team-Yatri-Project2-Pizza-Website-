@@ -56,7 +56,7 @@ const getSalesAnalytics = async (req, res) => {
 const getProductAnalytics = async (req, res) => {
   try {
     const { limit = 10, period = 'month' } = req.query;
-    const since = getDateRange(period);
+    const { currentStart } = getDateRange(period);
 
     // Items are stored as JSONB — use jsonb_array_elements to unnest and aggregate
     const productData = await sequelize.query(
@@ -71,7 +71,7 @@ const getProductAnalytics = async (req, res) => {
        GROUP BY item->>'name'
        ORDER BY "totalQuantity" DESC
        LIMIT :limit`,
-      { replacements: { since, limit: parseInt(limit) }, type: sequelize.QueryTypes.SELECT }
+      { replacements: { since: currentStart, limit: parseInt(limit) }, type: sequelize.QueryTypes.SELECT }
     );
 
     res.json({ success: true, data: productData });
@@ -81,18 +81,102 @@ const getProductAnalytics = async (req, res) => {
   }
 };
 
-// Helper function to get date range based on period
+const getProductTrends = async (req, res) => {
+  try {
+    const { period = 'month', limit = 5 } = req.query;
+    const { currentStart, currentEnd, previousStart, previousEnd } = getDateRange(period);
+
+    const currentTotals = await fetchProductTotals(currentStart, currentEnd);
+    const previousTotals = await fetchProductTotals(previousStart, previousEnd);
+
+    const productNames = new Set([
+      ...Object.keys(currentTotals),
+      ...Object.keys(previousTotals)
+    ]);
+
+    const products = Array.from(productNames).map((name) => {
+      const currentQty = currentTotals[name]?.totalQuantity || 0;
+      const prevQty = previousTotals[name]?.totalQuantity || 0;
+      const diff = currentQty - prevQty;
+      const percent = prevQty === 0 ? (currentQty > 0 ? 100 : 0) : ((diff / prevQty) * 100);
+
+      return {
+        productName: name,
+        totalQuantity: currentQty,
+        previousQuantity: prevQty,
+        change: diff,
+        percentChange: Number(percent.toFixed(1)),
+      };
+    });
+
+    const movers = [...products]
+      .sort((a, b) => b.change - a.change)
+      .slice(0, limit)
+      .filter(item => item.totalQuantity > 0);
+
+    const decliners = [...products]
+      .sort((a, b) => a.change - b.change)
+      .slice(0, limit)
+      .filter(item => item.previousQuantity > 0);
+
+    res.json({
+      success: true,
+      data: {
+        movers,
+        decliners,
+      }
+    });
+  } catch (error) {
+    console.error('Product trend analytics error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching product trends' });
+  }
+};
+
 function getDateRange(period) {
   const now = new Date();
+  const currentEnd = new Date();
+  let rangeDays;
+
   switch (period) {
     case 'week':
-      return new Date(now - 7 * 24 * 60 * 60 * 1000);
+      rangeDays = 7;
+      break;
     case 'year':
-      return new Date(now.getFullYear(), 0, 1);
+      rangeDays = 365;
+      break;
     case 'month':
     default:
-      return new Date(now.getFullYear(), now.getMonth(), 1);
+      rangeDays = 30;
   }
+
+  const currentStart = new Date(now - rangeDays * 24 * 60 * 60 * 1000);
+  const previousStart = new Date(currentStart - rangeDays * 24 * 60 * 60 * 1000);
+  const previousEnd = new Date(currentStart);
+
+  return { currentStart, currentEnd, previousStart, previousEnd };
+}
+
+async function fetchProductTotals(startDate, endDate) {
+  const rows = await sequelize.query(
+    `SELECT
+        item->>'name' AS "productName",
+        SUM((item->>'quantity')::int) AS "totalQuantity"
+      FROM "Orders",
+           jsonb_array_elements(items) AS item
+      WHERE status != 'cancelled'
+        AND "createdAt" >= :start
+        AND "createdAt" < :end
+      GROUP BY item->>'name'`,
+    {
+      replacements: { start: startDate, end: endDate },
+      type: sequelize.QueryTypes.SELECT
+    }
+  );
+
+  return rows.reduce((acc, row) => {
+    acc[row.productName] = row;
+    return acc;
+  }, {});
 }
 
 // @desc    Get dashboard statistics
@@ -160,5 +244,6 @@ const getDashboardStats = async (req, res) => {
 module.exports = {
   getSalesAnalytics,
   getProductAnalytics,
+  getProductTrends,
   getDashboardStats
 };

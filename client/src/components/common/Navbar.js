@@ -82,17 +82,9 @@ const Navbar = () => {
             Menu
           </Link>
           
-          <a href="/#about" className="nav-link" onClick={(e) => {
-            e.preventDefault();
-            const aboutSection = document.getElementById('about');
-            if (aboutSection) {
-              aboutSection.scrollIntoView({ behavior: 'smooth' });
-            } else {
-              window.location.href = '/#about';
-            }
-          }}>
+          <Link to="/about" className={`nav-link ${isActive('/about') ? 'active' : ''}`}>
             About Us
-          </a>
+          </Link>
 
           {isAuthenticated ? (
             <>

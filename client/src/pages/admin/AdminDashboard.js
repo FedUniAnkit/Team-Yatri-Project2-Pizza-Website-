@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import analyticsService from '../../services/analyticsService';
 import { Line, Bar } from 'react-chartjs-2';
 import {
@@ -13,6 +13,7 @@ import {
   Legend,
 } from 'chart.js';
 import { toast } from 'react-toastify';
+import { FiBox, FiUsers, FiMail, FiTag, FiTrendingUp, FiShoppingBag, FiDollarSign, FiActivity } from 'react-icons/fi';
 import './AdminDashboard.css';
 
 ChartJS.register(
@@ -28,7 +29,9 @@ ChartJS.register(
 
 const AdminDashboard = () => {
   const [salesData, setSalesData] = useState(null);
-  const [productData, setProductData] = useState(null);
+  const [productChartData, setProductChartData] = useState(null);
+  const [productList, setProductList] = useState([]);
+  const [trendData, setTrendData] = useState(null);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [salesPeriod, setSalesPeriod] = useState('monthly');
   const [productPeriod, setProductPeriod] = useState('month');
@@ -38,9 +41,10 @@ const AdminDashboard = () => {
     const fetchAllData = async () => {
       setIsLoading(true);
       try {
-        const [salesRes, productRes, statsRes] = await Promise.all([
+        const [salesRes, productRes, trendRes, statsRes] = await Promise.all([
           analyticsService.getSalesAnalytics(salesPeriod),
-          analyticsService.getProductAnalytics(10, productPeriod),
+          analyticsService.getProductAnalytics(100, productPeriod),
+          analyticsService.getProductTrends(5, productPeriod),
           analyticsService.getDashboardStats(),
         ]);
 
@@ -51,9 +55,14 @@ const AdminDashboard = () => {
         }
 
         if (productRes.success) {
-          setProductData(formatProductData(productRes.data));
+          setProductList(productRes.data || []);
+          setProductChartData(formatProductData(productRes.data));
         } else {
           toast.error('Failed to load product data.');
+        }
+
+        if (trendRes.success) {
+          setTrendData(trendRes.data);
         }
 
         if (statsRes.success) {
@@ -95,9 +104,10 @@ const AdminDashboard = () => {
     };
   };
 
-  const formatProductData = (data) => {
-    const labels = data.map(p => p.productName);
-    const quantities = data.map(p => p.totalQuantity);
+  const formatProductData = (data = []) => {
+    const topTen = data.slice(0, 10);
+    const labels = topTen.map(p => p.productName);
+    const quantities = topTen.map(p => p.totalQuantity);
 
     return {
       labels,
@@ -113,6 +123,7 @@ const AdminDashboard = () => {
 
   const salesOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     interaction: {
       mode: 'index',
       intersect: false,
@@ -150,6 +161,7 @@ const AdminDashboard = () => {
 
   const productOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
@@ -161,49 +173,100 @@ const AdminDashboard = () => {
     },
   };
 
+  const quickLinks = useMemo(() => ([
+    { label: 'Manage Products', href: '/admin/products', icon: <FiBox /> },
+    { label: 'Manage Users', href: '/admin/users', icon: <FiUsers /> },
+    { label: 'Newsletter', href: '/admin/newsletter', icon: <FiMail /> },
+    { label: 'Promo Banners', href: '/admin/promo-banners', icon: <FiActivity /> },
+    { label: 'Promo Codes', href: '/admin/promotions', icon: <FiTag /> },
+    { label: 'Orders Board', href: '/staff/orders', icon: <FiShoppingBag /> },
+  ]), []);
+
+  const statCards = useMemo(() => {
+    if (!dashboardStats) return [];
+    return [
+      {
+        label: 'Total Orders',
+        value: dashboardStats.totalOrders,
+        caption: 'Lifetime',
+        accent: '#7c3aed',
+        icon: <FiShoppingBag />,
+      },
+      {
+        label: 'Total Revenue',
+        value: `$${dashboardStats.totalRevenue.toFixed(2)}`,
+        caption: 'Since launch',
+        accent: '#0ea5e9',
+        icon: <FiDollarSign />,
+      },
+      {
+        label: 'This Month',
+        value: `$${dashboardStats.monthRevenue.toFixed(2)}`,
+        caption: 'Month-to-date',
+        accent: '#22c55e',
+        icon: <FiTrendingUp />,
+      },
+      {
+        label: 'Customers',
+        value: dashboardStats.totalCustomers,
+        caption: 'Active profiles',
+        accent: '#f97316',
+        icon: <FiUsers />,
+      },
+      {
+        label: 'Pending Orders',
+        value: dashboardStats.pendingOrders,
+        caption: 'Need attention',
+        accent: '#ef4444',
+        icon: <FiActivity />,
+      },
+      {
+        label: "Today's Orders",
+        value: dashboardStats.todayOrders,
+        caption: 'Since midnight',
+        accent: '#14b8a6',
+        icon: <FiBox />,
+      },
+    ];
+  }, [dashboardStats]);
+
   if (isLoading) {
-    return <p>Loading dashboard...</p>;
+    return (
+      <div className="admin-dashboard loading-state">
+        <p>Pulling fresh insights…</p>
+      </div>
+    );
   }
 
   return (
     <div className="admin-dashboard">
-      <div className="dashboard-header" style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,flexWrap:'wrap',marginBottom:'1rem'}}>
-        <h2 style={{margin:0}}>Analytics Dashboard</h2>
-        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-          <a href="/admin/products" className="nav-button" style={{padding:'10px 14px',background:'#16a34a',color:'#fff',borderRadius:6,textDecoration:'none'}}>
-            Manage Products
-          </a>
-          <a href="/admin/users" className="nav-button" style={{padding:'10px 14px',background:'#1e88e5',color:'#fff',borderRadius:6,textDecoration:'none'}}>
-            Manage Users
-          </a>
-          <a href="/admin/newsletter" className="nav-button" style={{padding:'10px 14px',background:'#e67e22',color:'#fff',borderRadius:6,textDecoration:'none'}}>
-            Newsletter
-          </a>
-          <a href="/admin/promo-banners" className="nav-button" style={{padding:'10px 14px',background:'#f39c12',color:'#fff',borderRadius:6,textDecoration:'none'}}>
-            Promo Banners
-          </a>
-          <a href="/admin/promotions" className="nav-button" style={{padding:'10px 14px',background:'#9b59b6',color:'#fff',borderRadius:6,textDecoration:'none'}}>
-            Promo Codes
-          </a>
-          <a href="/staff/orders" className="nav-button" style={{padding:'10px 14px',background:'#e74c3c',color:'#fff',borderRadius:6,textDecoration:'none'}}>
-            Orders
-          </a>
+      <div className="dashboard-hero">
+        <div>
+          <p className="eyebrow">Operations Center</p>
+          <h1>Analytics Dashboard</h1>
+          <p className="hero-subtitle">Track revenue, orders, and product momentum across Komorebi Pizza.</p>
         </div>
       </div>
-      {/* KPI Summary Row */}
-      {dashboardStats && (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'1rem',marginBottom:'1.5rem'}}>
-          {[
-            { label: 'Total Orders',    value: dashboardStats.totalOrders,                        color: '#3498db' },
-            { label: 'Total Revenue',   value: `$${dashboardStats.totalRevenue.toFixed(2)}`,       color: '#27ae60' },
-            { label: 'This Month',      value: `$${dashboardStats.monthRevenue.toFixed(2)}`,       color: '#9b59b6' },
-            { label: 'Customers',       value: dashboardStats.totalCustomers,                      color: '#e67e22' },
-            { label: 'Pending Orders',  value: dashboardStats.pendingOrders,                       color: '#e74c3c' },
-            { label: "Today's Orders",  value: dashboardStats.todayOrders,                         color: '#1abc9c' },
-          ].map(stat => (
-            <div key={stat.label} style={{background:'#fff',border:'1px solid #e9ecef',borderRadius:10,padding:'1rem 1.2rem',borderTop:`3px solid ${stat.color}`}}>
-              <div style={{fontSize:'0.78rem',fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:'0.04em',marginBottom:6}}>{stat.label}</div>
-              <div style={{fontSize:'1.4rem',fontWeight:700,color:'#2c3e50'}}>{stat.value}</div>
+
+      <div className="quick-actions">
+        {quickLinks.map((link) => (
+          <a key={link.label} href={link.href} className="quick-action-card">
+            <span className="quick-icon">{link.icon}</span>
+            <span>{link.label}</span>
+          </a>
+        ))}
+      </div>
+
+      {statCards.length > 0 && (
+        <div className="stat-grid">
+          {statCards.map((card) => (
+            <div key={card.label} className="stat-card">
+              <div className="stat-icon" style={{ background: card.accent }}>{card.icon}</div>
+              <div className="stat-meta">
+                <p className="stat-label">{card.label}</p>
+                <h3>{card.value}</h3>
+                <span className="stat-caption">{card.caption}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -219,19 +282,101 @@ const AdminDashboard = () => {
               <option value="yearly">Yearly</option>
             </select>
           </div>
-          {salesData ? <Line options={salesOptions} data={salesData} /> : <p>No sales data available.</p>}
+          {salesData ? (
+            <div className="chart-viewport">
+              <Line options={salesOptions} data={salesData} />
+            </div>
+          ) : (
+            <p>No sales data available.</p>
+          )}
         </div>
         <div className="chart-container product-chart">
-           <div className="chart-header">
+          <div className="chart-header">
             <h3>Top Products</h3>
-             <select value={productPeriod} onChange={(e) => setProductPeriod(e.target.value)} className="period-select">
+            <select value={productPeriod} onChange={(e) => setProductPeriod(e.target.value)} className="period-select">
               <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="year">This Year</option>
             </select>
           </div>
-          {productData ? <Bar options={productOptions} data={productData} /> : <p>No product data available.</p>}
+          {productChartData ? (
+            <div className="chart-viewport">
+              <Bar options={productOptions} data={productChartData} />
+            </div>
+          ) : (
+            <p>No product data available.</p>
+          )}
         </div>
+        {productList.length > 0 && (
+          <div className="chart-container product-table">
+            <div className="chart-header">
+              <h3>All Products — Units Sold</h3>
+              <span className="table-caption">Sorted by quantity ({productPeriod})</span>
+            </div>
+            <div className="product-table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Units Sold</th>
+                    <th>Revenue ($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productList.map((item, idx) => (
+                    <tr key={`${item.productName}-${idx}`}>
+                      <td>{idx + 1}</td>
+                      <td>{item.productName}</td>
+                      <td>{item.totalQuantity}</td>
+                      <td>{Number(item.totalRevenue).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {trendData && (
+          <div className="chart-container trend-card">
+            <div className="chart-header">
+              <h3>Risers & Decliners</h3>
+              <select value={productPeriod} onChange={(e) => setProductPeriod(e.target.value)} className="period-select">
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+              </select>
+            </div>
+            <div className="trend-grid">
+              <div>
+                <p className="trend-label">Top Risers</p>
+                {trendData.movers.length === 0 && <p className="trend-empty">No data available.</p>}
+                {trendData.movers.map((item) => (
+                  <div key={`mover-${item.productName}`} className="trend-row">
+                    <div>
+                      <strong>{item.productName}</strong>
+                      <span className="trend-sub">{item.totalQuantity} sold</span>
+                    </div>
+                    <span className="trend-up">+{item.change} ({item.percentChange}%)</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="trend-label">Top Decliners</p>
+                {trendData.decliners.length === 0 && <p className="trend-empty">No data available.</p>}
+                {trendData.decliners.map((item) => (
+                  <div key={`decliner-${item.productName}`} className="trend-row">
+                    <div>
+                      <strong>{item.productName}</strong>
+                      <span className="trend-sub">{item.previousQuantity} → {item.totalQuantity}</span>
+                    </div>
+                    <span className="trend-down">{item.change} ({item.percentChange}%)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,381 @@
+.about-page {
+  background: #f8f9fa;
+}
+
+/* Hero */
+.about-hero {
+  position: relative;
+  height: 420px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.about-hero-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+.about-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+.about-hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 3px;
+  margin-bottom: 14px;
+}
+.about-tagline {
+  color: #ddd;
+  font-size: 1.1rem;
+  max-width: 600px;
+}
+
+/* Sections */
+.about-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 70px 24px;
+}
+.about-section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+/* Heritage Grid */
+.about-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.about-text h2 {
+  text-align: left;
+  margin-bottom: 16px;
+}
+.about-text p {
+  color: #555;
+  line-height: 1.85;
+  font-size: 1rem;
+  margin-bottom: 14px;
+}
+.about-image-block img {
+  width: 100%;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.14);
+}
+
+/* Journey Timeline */
+.about-journey {
+  background: #fff;
+  padding: 70px 24px;
+  text-align: center;
+}
+.about-journey h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+.journey-subtitle {
+  color: #777;
+  font-size: 1rem;
+  margin-bottom: 48px;
+}
+.journey-timeline {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto;
+  padding-left: 60px;
+}
+.journey-timeline::before {
+  content: '';
+  position: absolute;
+  left: 27px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #e74c3c, #f39c12);
+  border-radius: 3px;
+}
+.journey-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 36px;
+  position: relative;
+  text-align: left;
+}
+.journey-year {
+  position: absolute;
+  left: -60px;
+  top: 2px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #e74c3c;
+  min-width: 42px;
+  text-align: right;
+}
+.journey-dot {
+  position: absolute;
+  left: -38px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  background: #e74c3c;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 3px #e74c3c33;
+}
+.journey-content {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 16px 20px;
+  flex: 1;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.journey-content:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.journey-content h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 6px;
+}
+.journey-content p {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Pillars of Craft */
+.about-values {
+  background: #f8f9fa;
+  padding: 70px 24px;
+  text-align: center;
+}
+.about-values h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+.pillars-subtitle {
+  color: #777;
+  font-size: 1rem;
+  margin-bottom: 40px;
+}
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.value-card {
+  padding: 32px 22px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #eee;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.value-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+.value-icon {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+}
+.value-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+.value-card p {
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.7;
+}
+
+/* Stats */
+.about-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: #2c3e50;
+  padding: 52px 24px;
+  text-align: center;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stat-number {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #e74c3c;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-size: 0.85rem;
+  color: #bbb;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Customer Reviews */
+.about-reviews {
+  background: #fff;
+  padding: 70px 24px;
+  text-align: center;
+}
+.about-reviews h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+.reviews-subtitle {
+  color: #777;
+  font-size: 1rem;
+  margin-bottom: 40px;
+}
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.review-card {
+  background: #f8f9fa;
+  border-radius: 14px;
+  padding: 28px 24px;
+  text-align: left;
+  border: 1px solid #eee;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.review-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.review-stars {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+.review-star {
+  color: #f39c12;
+  font-size: 1rem;
+}
+.review-text {
+  font-size: 0.92rem;
+  color: #555;
+  line-height: 1.7;
+  font-style: italic;
+  margin: 0 0 14px;
+}
+.review-author {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* CTA */
+.about-cta {
+  text-align: center;
+  padding: 70px 24px;
+  background: #f8f9fa;
+}
+.about-cta-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.about-cta h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+.about-cta p {
+  color: #777;
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+.about-cta-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+.about-btn-primary {
+  display: inline-block;
+  background: #e74c3c;
+  color: #fff;
+  padding: 12px 32px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+.about-btn-primary:hover { background: #c0392b; }
+.about-btn-secondary {
+  display: inline-block;
+  background: transparent;
+  color: #2c3e50;
+  padding: 12px 32px;
+  border-radius: 8px;
+  border: 2px solid #2c3e50;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+.about-btn-secondary:hover {
+  background: #2c3e50;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-hero { height: 320px; }
+  .about-hero h1 { font-size: 2rem; }
+  .about-content-grid { grid-template-columns: 1fr; }
+  .values-grid { grid-template-columns: 1fr 1fr; }
+  .reviews-grid { grid-template-columns: 1fr; }
+  .about-stats { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .journey-timeline { padding-left: 50px; }
+  .journey-year { left: -50px; }
+  .journey-dot { left: -28px; }
+  .journey-timeline::before { left: 20px; }
+}
+
+@media (max-width: 480px) {
+  .values-grid { grid-template-columns: 1fr; }
+  .about-stats { grid-template-columns: 1fr; }
+}

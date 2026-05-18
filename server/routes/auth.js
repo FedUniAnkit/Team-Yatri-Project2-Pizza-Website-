@@ -8,7 +8,10 @@ const {
   resetPasswordWithOTP,
   updatePassword,
   updatePasswordForced,
-  createStaff
+  createStaff,
+  initiateRegister,
+  verifyRegisterOTP,
+  resendRegisterOTP
 } = require('../controllers/authController');
 const { authenticate, authorize } = require('../middleware/auth');
 
@@ -21,9 +24,24 @@ router.get('/test', (req, res) => {
 });
 
 // @route   POST /api/auth/register
-// @desc    Register a new user
+// @desc    Register a new user (legacy direct)
 // @access  Public
 router.post('/register', register);
+
+// @route   POST /api/auth/register/initiate
+// @desc    Step 1: Validate and send OTP to email
+// @access  Public
+router.post('/register/initiate', initiateRegister);
+
+// @route   POST /api/auth/register/verify-otp
+// @desc    Step 2: Verify OTP and create user
+// @access  Public
+router.post('/register/verify-otp', verifyRegisterOTP);
+
+// @route   POST /api/auth/register/resend-otp
+// @desc    Resend OTP for pending registration
+// @access  Public
+router.post('/register/resend-otp', resendRegisterOTP);
 
 // @route   POST /api/auth/login
 // @desc    Login user

@@ -30,6 +30,7 @@ const AdminAnalytics = () => {
   const [salesData, setSalesData] = useState(null);
   const [productData, setProductData] = useState(null);
   const [timeRange, setTimeRange] = useState('monthly');
+  const [productRange, setProductRange] = useState('month');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -44,7 +45,7 @@ const AdminAnalytics = () => {
         setSalesData(salesResponse.data);
         
         // Fetch product data (top 10 products by default)
-        const productsResponse = await analyticsService.getProductAnalytics(10, 'month');
+        const productsResponse = await analyticsService.getProductAnalytics(10, productRange);
         setProductData(productsResponse.data);
         
       } catch (err) {
@@ -56,7 +57,7 @@ const AdminAnalytics = () => {
     };
 
     fetchAnalytics();
-  }, [timeRange]);
+  }, [timeRange, productRange]);
 
   // Prepare sales chart data
   const salesChartData = {
@@ -188,15 +189,30 @@ const AdminAnalytics = () => {
       <div className="analytics-header">
         <h2>Analytics Dashboard</h2>
         <div className="time-range-selector">
-          <select 
-            value={timeRange} 
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="time-range-select"
-          >
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+          <label>
+            Sales Period
+            <select 
+              value={timeRange} 
+              onChange={(e) => setTimeRange(e.target.value)}
+              className="time-range-select"
+            >
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </label>
+          <label>
+            Product Range
+            <select
+              value={productRange}
+              onChange={(e) => setProductRange(e.target.value)}
+              className="time-range-select"
+            >
+              <option value="week">Last 7 Days</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+          </label>
         </div>
       </div>
 

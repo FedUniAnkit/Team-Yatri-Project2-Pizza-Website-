@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { FiMapPin, FiPhone, FiClock, FiMail } from 'react-icons/fi';
+import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import PromoBanner from '../components/PromoBanner';
 import './Home.css';
@@ -42,13 +45,46 @@ import ka1 from '../assets/ka1.jpg';
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('unsubscribed') === 'true') {
+      toast.info('You have been successfully unsubscribed from our newsletter.');
+      window.history.replaceState({}, '', '/');
+    }
+  }, [location.search]);
   
   const heroImages = [
     heroBackground1,
     heroBackground2,
     heroBackground3,
     heroBackground4
+  ];
+
+  const testimonialsData = [
+    {
+      quote: 'Exceptional culinary artistry! The attention to detail in every dish is remarkable. The crust has the perfect char and chew, while the ingredient quality rivals Naples.',
+      name: 'Sarah Johnson',
+      role: 'Food Blogger',
+      rating: 5,
+      image: person1,
+    },
+    {
+      quote: 'An extraordinary dining experience from start to finish. The ambiance and knowledgeable staff make each visit feel like a culinary discovery.',
+      name: 'Michael Chen',
+      role: 'HR Manager',
+      rating: 4.5,
+      image: person2,
+    },
+    {
+      quote: 'Komorebi strikes the balance between sophisticated cuisine and warmth. Seasonal menus showcase creative interpretations of classic dishes.',
+      name: 'Emily Rodriguez',
+      role: 'Business Developer',
+      rating: 4.5,
+      image: person3,
+    }
   ];
 
   useEffect(() => {
@@ -74,6 +110,20 @@ const Home = () => {
       default:
         return '/login';
     }
+  };
+
+  const renderRating = (value) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (value >= i) {
+        stars.push(<FaStar key={i} />);
+      } else if (value > i - 1 && value < i) {
+        stars.push(<FaStarHalfAlt key={i} />);
+      } else {
+        stars.push(<FaRegStar key={i} />);
+      }
+    }
+    return stars;
   };
 
   return (
@@ -488,49 +538,23 @@ const Home = () => {
         <div className="container">
           <h2 className="section-title">Customer Excellence</h2>
           <p className="section-subtitle">Testimonials from our community of food enthusiasts</p>
-          
           <div className="testimonials-grid">
-            <div className="testimonial">
-              <div className="testimonial-content">
-                <div className="stars">⭐⭐⭐⭐⭐</div>
-                <p>"Exceptional culinary artistry! The attention to detail in every dish is remarkable. The wood-fired crust has the perfect char and chew, while the ingredient quality rivals the best pizzerias in Naples. Komorebi has redefined my pizza expectations."</p>
-              </div>
-              <div className="testimonial-author">
-                <img src={person1} alt="Sarah Johnson" className="author-image" />
-                <div className="author-info">
-                  <h4>Sarah Johnson</h4>
-                  <span>Food Blogger</span>
+            {testimonialsData.map((testimonial, index) => (
+              <div className="testimonial" key={`${testimonial.name}-${index}`}>
+                <div className="testimonial-line" />
+                <div className="testimonial-avatar">
+                  <img src={testimonial.image} alt={testimonial.name} />
+                </div>
+                <div className="testimonial-body">
+                  <h4>{testimonial.name}</h4>
+                  <p className="testimonial-role">{testimonial.role}</p>
+                  <div className="testimonial-rating">
+                    {renderRating(testimonial.rating)}
+                  </div>
+                  <p className="testimonial-quote">{testimonial.quote}</p>
                 </div>
               </div>
-            </div>
-            
-            <div className="testimonial">
-              <div className="testimonial-content">
-                <div className="stars">⭐⭐⭐⭐⭐</div>
-                <p>"An extraordinary dining experience from start to finish. The ambiance perfectly complements the exceptional cuisine, and the staff's knowledge of ingredients and wine pairings is impressive. Each visit reveals new flavors and culinary discoveries."</p>
-              </div>
-              <div className="testimonial-author">
-                <img src={person2} alt="Michael Chen" className="author-image" />
-                <div className="author-info">
-                  <h4>Michael Chen</h4>
-                  <span>Regular Customer</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="testimonial">
-              <div className="testimonial-content">
-                <div className="stars">⭐⭐⭐⭐⭐</div>
-                <p>"Komorebi strikes the perfect balance between sophisticated cuisine and welcoming atmosphere. The seasonal menu showcases creative interpretations of classic dishes, and the service team's passion for food is evident in every recommendation."</p>
-              </div>
-              <div className="testimonial-author">
-                <img src={person3} alt="Emily Rodriguez" className="author-image" />
-                <div className="author-info">
-                  <h4>Emily Rodriguez</h4>
-                  <span>Local Resident</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -538,53 +562,61 @@ const Home = () => {
       {/* Contact Section */}
       <section className="contact-section">
         <div className="container">
-          <div className="contact-content">
-            <div className="contact-info">
-              <h2 className="section-title">Experience Komorebi</h2>
-              <p className="section-subtitle">Where culinary artistry meets warm hospitality</p>
-              
-              <div className="contact-details">
-                <div className="contact-item">
-                  <div className="contact-icon">📍</div>
-                  <div className="contact-text">
-                    <h3>Location</h3>
-                    <p>456 Culinary Boulevard<br />Beverly Hills, CA 90210</p>
-                  </div>
-                </div>
-                
-                <div className="contact-item">
-                  <div className="contact-icon">📞</div>
-                  <div className="contact-text">
-                    <h3>Phone</h3>
-                    <p>(555) 123-PIZZA<br />(555) 123-7499</p>
-                  </div>
-                </div>
-                
-                <div className="contact-item">
-                  <div className="contact-icon">🕒</div>
-                  <div className="contact-text">
-                    <h3>Hours</h3>
-                    <p>Mon-Thu: 11:30am-10pm<br />Fri-Sat: 11:30am-11pm<br />Sun: 12pm-9:30pm</p>
-                  </div>
-                </div>
-                
-                <div className="contact-item">
-                  <div className="contact-icon">✉️</div>
-                  <div className="contact-text">
-                    <h3>Email</h3>
-                    <p>hello@komorebi-pizza.com<br />reservations@komorebi-pizza.com</p>
-                  </div>
+          <div className="contact-heading">
+            <p className="contact-eyebrow">Connect With Us</p>
+            <h2>CONTACT US</h2>
+            <p className="contact-subtext">
+              We align leaders around a shared purpose and strategic story that catalyzes their business and brand to take action.
+            </p>
+          </div>
+
+          <div className="contact-layout">
+            <div className="contact-panel">
+              <div className="panel-item">
+                <FiMapPin />
+                <div>
+                  <h3>Address</h3>
+                  <p>IIBIT Adelaide<br />127 Rundle Mall<br />Adelaide SA 5000</p>
                 </div>
               </div>
-              
-              <div className="contact-cta">
-                <Link to={getDashboardLink()} className="btn btn-primary">
-                  {isAuthenticated ? 'Dashboard' : 'Order Online'}
-                </Link>
-                <a href="tel:5551237499" className="btn btn-secondary">
-                  Call Now
-                </a>
+              <div className="panel-item">
+                <FiMail />
+                <div>
+                  <h3>Email</h3>
+                  <p>hello@komorebi-pizza.com<br />support@komorebi-pizza.com</p>
+                </div>
               </div>
+              <div className="panel-item">
+                <FiPhone />
+                <div>
+                  <h3>Call Us</h3>
+                  <p>(08) 8123 4567<br />(08) 8123 4568</p>
+                </div>
+              </div>
+              <div className="panel-item">
+                <FiClock />
+                <div>
+                  <h3>Contact Us</h3>
+                  <p>Reach out for catering or private dining.
+                    <span className="panel-socials">
+                      <a href="https://facebook.com" target="_blank" rel="noreferrer">Fb</a>
+                      <a href="https://twitter.com" target="_blank" rel="noreferrer">Tw</a>
+                      <a href="https://instagram.com" target="_blank" rel="noreferrer">Ig</a>
+                      <a href="https://pinterest.com" target="_blank" rel="noreferrer">Pi</a>
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="contact-map">
+              <iframe
+                title="Komorebi Adelaide"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3201.6562517933873!2d138.59796447648017!3d-34.922169873290724!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ab0ced7031e1ef1%3A0x2908b1dd7c10a19d!2s127%20Rundle%20Mall%2C%20Adelaide%20SA%205000!5e0!3m2!1sen!2sau!4v1715620000000!5m2!1sen!2sau"
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
           </div>
         </div>

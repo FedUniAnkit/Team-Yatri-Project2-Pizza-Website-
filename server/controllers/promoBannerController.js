@@ -49,7 +49,7 @@ const getActiveBanner = async (req, res) => {
 // @route   POST /api/promo-banner
 // @access  Private/Admin
 const createBanner = async (req, res) => {
-  const { title, message, promoCode, style, isActive, startDate, endDate } = req.body;
+  const { title, message, promoCode, style, imageUrl, ctaText, ctaLink, isActive, startDate, endDate } = req.body;
   
   if (!title || !message) {
     return res.status(400).json({ success: false, message: 'Title and message are required' });
@@ -66,6 +66,9 @@ const createBanner = async (req, res) => {
       message,
       promoCode: promoCode || null,
       style: style || 'gradient',
+      imageUrl: imageUrl || null,
+      ctaText: ctaText || null,
+      ctaLink: ctaLink || null,
       isActive: isActive || false,
       startDate: startDate || null,
       endDate: endDate || null
@@ -82,7 +85,7 @@ const createBanner = async (req, res) => {
 // @access  Private/Admin
 const updateBanner = async (req, res) => {
   const { id } = req.params;
-  const { title, message, promoCode, style, isActive, startDate, endDate } = req.body;
+  const { title, message, promoCode, style, imageUrl, ctaText, ctaLink, isActive, startDate, endDate } = req.body;
 
   try {
     const banner = await PromoBanner.findByPk(id);
@@ -100,6 +103,9 @@ const updateBanner = async (req, res) => {
       message: message || banner.message,
       promoCode: promoCode !== undefined ? promoCode : banner.promoCode,
       style: style || banner.style,
+      imageUrl: imageUrl !== undefined ? imageUrl : banner.imageUrl,
+      ctaText: ctaText !== undefined ? ctaText : banner.ctaText,
+      ctaLink: ctaLink !== undefined ? ctaLink : banner.ctaLink,
       isActive: isActive !== undefined ? isActive : banner.isActive,
       startDate: startDate !== undefined ? startDate : banner.startDate,
       endDate: endDate !== undefined ? endDate : banner.endDate

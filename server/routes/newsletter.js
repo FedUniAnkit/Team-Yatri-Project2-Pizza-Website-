@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   subscribe,
+  unsubscribe,
   getAllSubscribers,
   sendMarketingEmail,
   sendPromotionalEmailToCustomers,
@@ -13,6 +14,11 @@ const { authenticate, authorize } = require('../middleware/auth');
 // @desc    Subscribe to the newsletter
 // @access  Public
 router.post('/subscribe', subscribe);
+
+// @route   GET /api/newsletter/unsubscribe
+// @desc    Unsubscribe from the newsletter
+// @access  Public
+router.get('/unsubscribe', unsubscribe);
 
 // @route   GET /api/newsletter/subscribers
 // @desc    Get all newsletter subscribers (Admin only)

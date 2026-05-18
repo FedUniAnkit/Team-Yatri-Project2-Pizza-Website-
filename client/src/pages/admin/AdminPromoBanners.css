@@ -81,6 +81,75 @@
   transition: border-color 0.2s;
 }
 
+.image-upload-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 120px;
+  border: 2px dashed #c9d6df;
+  border-radius: 12px;
+  color: #7f8c8d;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.image-upload-tile:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.banner-image-preview {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+}
+
+.banner-image-preview img {
+  width: 100%;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  object-fit: cover;
+}
+
+.btn-remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.banner-image-thumb {
+  width: 260px;
+  margin-top: 0.75rem;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.banner-image-thumb img {
+  width: 100%;
+  display: block;
+}
+
+.banner-cta-display {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
 .form-group input:focus,
 .form-group select:focus {
   outline: none;

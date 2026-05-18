@@ -741,6 +741,166 @@ const createStaff = async (req, res) => {
   }
 };
 
+// ===== OTP-SECURED REGISTRATION =====
+
+// In-memory store for pending registrations (email -> { data, otp, expiresAt })
+const pendingRegistrations = new Map();
+
+// Clean up expired entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [email, entry] of pendingRegistrations) {
+    if (now > entry.expiresAt) pendingRegistrations.delete(email);
+  }
+}, 5 * 60 * 1000);
+
+// Step 1: Validate input, send OTP email
+const initiateRegister = async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+
+    // Validate phone
+    if (phone) {
+      const cleanedPhone = phone.replace(/\s+/g, '');
+      if (!/^\d{10}$/.test(cleanedPhone)) {
+        return res.status(400).json({ success: false, message: 'Phone number must be exactly 10 digits' });
+      }
+      if (!/^(04|02|03|07|08)/.test(cleanedPhone)) {
+        return res.status(400).json({ success: false, message: 'Must be a valid Australian phone number' });
+      }
+    }
+
+    // Validate password
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+    const pwErrors = [];
+    if (!/[A-Z]/.test(password)) pwErrors.push('one uppercase letter');
+    if (!/[a-z]/.test(password)) pwErrors.push('one lowercase letter');
+    if (!/[0-9]/.test(password)) pwErrors.push('one number');
+    if (!/[!@#$%^&*()_+\-={}[\]|;:'",.<>?/`~]/.test(password)) pwErrors.push('one special character');
+    if (pwErrors.length > 0) {
+      return res.status(400).json({ success: false, message: 'Password must contain: ' + pwErrors.join(', ') });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store pending registration
+    pendingRegistrations.set(email.toLowerCase().trim(), {
+      data: { name, email, password, phone, role: role || 'customer' },
+      otp,
+      expiresAt,
+    });
+
+    // Send OTP email
+    try {
+      await emailService.sendEmail(email, 'Verify Your Email - Komorebi Pizza', 'registration-otp', {
+        name,
+        otp,
+      });
+    } catch (emailErr) {
+      console.error('[REGISTER-OTP] Failed to send OTP email:', emailErr);
+      return res.status(500).json({ success: false, message: 'Failed to send verification email. Please try again.' });
+    }
+
+    console.log('[REGISTER-OTP] OTP sent to:', email);
+    res.json({ success: true, message: 'Verification code sent to your email.' });
+  } catch (error) {
+    console.error('[REGISTER-OTP] Error:', error);
+    res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
+  }
+};
+
+// Step 2: Verify OTP and create the user
+const verifyRegisterOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const key = email.toLowerCase().trim();
+
+    const pending = pendingRegistrations.get(key);
+    if (!pending) {
+      return res.status(400).json({ success: false, message: 'No pending registration found. Please register again.' });
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      pendingRegistrations.delete(key);
+      return res.status(400).json({ success: false, message: 'Verification code has expired. Please register again.' });
+    }
+
+    if (pending.otp !== otp) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code.' });
+    }
+
+    // OTP valid — create the user
+    const { name, password, phone, role } = pending.data;
+
+    const user = await User.create({ name, email: key, password, phone, role });
+
+    // Clean up
+    pendingRegistrations.delete(key);
+
+    // Generate JWT
+    const token = generateToken(user.id);
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('[REGISTER-OTP] Verify error:', error);
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(err => err.message);
+      return res.status(400).json({ success: false, message: messages.join(', ') });
+    }
+    res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
+  }
+};
+
+// Resend OTP for pending registration
+const resendRegisterOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const key = email.toLowerCase().trim();
+
+    const pending = pendingRegistrations.get(key);
+    if (!pending) {
+      return res.status(400).json({ success: false, message: 'No pending registration found. Please register again.' });
+    }
+
+    // Generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    pending.otp = otp;
+    pending.expiresAt = Date.now() + 10 * 60 * 1000;
+
+    try {
+      await emailService.sendEmail(email, 'Verify Your Email - Komorebi Pizza', 'registration-otp', {
+        name: pending.data.name,
+        otp,
+      });
+    } catch (emailErr) {
+      return res.status(500).json({ success: false, message: 'Failed to resend verification email.' });
+    }
+
+    res.json({ success: true, message: 'New verification code sent.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to resend code.' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -750,5 +910,8 @@ module.exports = {
   resetPasswordWithOTP,
   updatePassword,
   updatePasswordForced,
-  createStaff
+  createStaff,
+  initiateRegister,
+  verifyRegisterOTP,
+  resendRegisterOTP,
 };
