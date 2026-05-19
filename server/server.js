@@ -37,7 +37,19 @@ connectDB();
 
 // Security middleware (allow cross-origin resource policy so frontend (3000) can load images from API (5000))
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://js.stripe.com'],
+      scriptSrcElem: ["'self'", 'https://js.stripe.com'],
+      frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+      connectSrc: ["'self'", 'https://api.stripe.com', 'https://m.stripe.network'],
+      imgSrc: ["'self'", 'data:', 'https://*.stripe.com'],
+      styleSrc: ["'self'", "'unsafe-inline'"]
+    }
+  }
 }));
 
 // CORS configuration
