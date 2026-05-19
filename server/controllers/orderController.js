@@ -188,7 +188,11 @@ const getMyOrders = async (req, res) => {
 // @access  Private (Customer, Staff, Admin)
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findByPk(req.params.id, { include: ['customer', 'promotion'] });
+    const order = await Order.findByPk(req.params.id, {
+      include: [
+        { association: 'customer', attributes: ['id', 'name', 'email'] }
+      ]
+    });
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -201,6 +205,7 @@ const getOrderById = async (req, res) => {
 
     res.status(200).json({ success: true, data: order });
   } catch (error) {
+    console.error('getOrderById error:', error);
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };

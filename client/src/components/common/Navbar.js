@@ -173,11 +173,6 @@ const Navbar = () => {
               <Link to="/register" className="nav-button primary">
                 Register
               </Link>
-              
-              <Link to="/cart" className={`nav-link cart-link ${isActive('/cart') ? 'active' : ''}`}>
-                <FiShoppingCart className="cart-icon" />
-                {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-              </Link>
             </>
           )}
         </div>

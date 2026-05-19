@@ -8,27 +8,27 @@ const router = express.Router();
 router.use(authenticate);
 
 router.route('/')
-  .post(authenticate, createOrder)
-  .get(authenticate, authorize('admin', 'staff'), getAllOrders);
+  .post(createOrder)
+  .get(authorize('admin', 'staff'), getAllOrders);
 
 router.route('/my-orders')
-  .get(authenticate, getMyOrders);
+  .get(getMyOrders);
 
 router.route('/:id')
-  .get(authenticate, getOrderById);
+  .get(getOrderById);
 
 router.route('/:id/status')
-  .put(authenticate, authorize('admin', 'staff'), updateOrderStatus);
+  .put(authorize('admin', 'staff'), updateOrderStatus);
 
 router.route('/:orderId/cancel')
-  .put(authenticate, cancelOrder);
+  .put(cancelOrder);
 
 // Staff/Admin: Cancel order with reason (S3-9)
 router.route('/:orderId/staff-cancel')
-  .put(authenticate, authorize('admin', 'staff'), cancelOrderByStaff);
+  .put(authorize('admin', 'staff'), cancelOrderByStaff);
 
 // Customer: Modify their own order
 router.route('/:orderId/modify')
-  .put(authenticate, initiateOrderModification);
+  .put(initiateOrderModification);
 
 module.exports = router;

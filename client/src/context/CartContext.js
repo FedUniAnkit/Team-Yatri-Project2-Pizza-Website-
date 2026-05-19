@@ -7,14 +7,15 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
-  // Get cart key based on user ID to isolate carts per user
-  const getCartKey = () => {
-    return user?.id ? `cart_${user.id}` : 'cart_guest';
+
+  const getCartKey = (userId) => {
+    return userId ? `cart_${userId}` : null;
   };
 
   const [cartItems, setCartItems] = useState(() => {
+    if (!user?.id) return [];
     try {
-      const localData = localStorage.getItem(getCartKey());
+      const localData = localStorage.getItem(getCartKey(user.id));
       return localData ? JSON.parse(localData) : [];
     } catch (error) {
       console.error('Could not parse cart data from localStorage', error);
@@ -24,13 +25,19 @@ export const CartProvider = ({ children }) => {
 
   // Save cart to user-specific localStorage key
   useEffect(() => {
-    localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
+    if (user?.id) {
+      localStorage.setItem(getCartKey(user.id), JSON.stringify(cartItems));
+    }
   }, [cartItems, user]);
 
-  // Clear cart when user changes (login/logout)
+  // Load correct cart when user changes (login/logout/switch)
   useEffect(() => {
+    if (!user?.id) {
+      setCartItems([]);
+      return;
+    }
     try {
-      const localData = localStorage.getItem(getCartKey());
+      const localData = localStorage.getItem(getCartKey(user.id));
       setCartItems(localData ? JSON.parse(localData) : []);
     } catch (error) {
       console.error('Could not load cart for user', error);
@@ -39,6 +46,7 @@ export const CartProvider = ({ children }) => {
   }, [user?.id]);
 
   const addToCart = (product, quantity = 1) => {
+    if (!user?.id) return;
     const qty = product.quantity || quantity;
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);

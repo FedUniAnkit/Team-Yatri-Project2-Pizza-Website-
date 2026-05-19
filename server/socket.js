@@ -5,8 +5,16 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        // Allow no-origin (curl, mobile) and any localhost in dev
+        if (!origin) return callback(null, true);
+        if (process.env.NODE_ENV !== 'production') return callback(null, true);
+        const allowed = [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:3001'].filter(Boolean);
+        if (allowed.includes(origin)) return callback(null, true);
+        return callback(new Error('CORS not allowed for: ' + origin));
+      },
       methods: ['GET', 'POST'],
+      credentials: true,
     },
   });
 

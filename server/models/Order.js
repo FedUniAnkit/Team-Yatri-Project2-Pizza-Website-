@@ -95,6 +95,14 @@ const Order = sequelize.define('Order', {
   stripePaymentIntentId: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  promotionId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'Promotions',
+      key: 'id'
+    }
   }
 }, {
   timestamps: true,
