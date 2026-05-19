@@ -9,21 +9,36 @@ const getSalesAnalytics = async (req, res) => {
   try {
     const { period = 'monthly' } = req.query;
     
-    let groupBy, dateFormat, dateTrunc;
-    
-    switch (period) {
-      case 'weekly':
-        dateFormat = '%Y-%U';
-        dateTrunc = 'week';
-        break;
-      case 'yearly':
-        dateFormat = '%Y';
-        dateTrunc = 'year';
-        break;
-      case 'monthly':
-      default:
-        dateFormat = '%Y-%m';
-        dateTrunc = 'month';
+    const now = new Date();
+    let since, until, dateTrunc, slots;
+
+    if (period === 'weekly') {
+      // Monday of current week → Sunday
+      dateTrunc = 'day';
+      const day = now.getDay(); // 0=Sun
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      since = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset);
+      until = new Date(since); until.setDate(since.getDate() + 7);
+      slots = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(since); d.setDate(since.getDate() + i);
+        slots.push(d);
+      }
+    } else if (period === 'yearly') {
+      // Jan 1 of current year → Dec 31
+      dateTrunc = 'month';
+      since = new Date(now.getFullYear(), 0, 1);
+      until = new Date(now.getFullYear() + 1, 0, 1);
+      slots = Array.from({ length: 12 }, (_, i) => new Date(now.getFullYear(), i, 1));
+    } else {
+      // monthly: 1st of current month → today
+      dateTrunc = 'day';
+      since = new Date(now.getFullYear(), now.getMonth(), 1);
+      until = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      slots = [];
+      for (let d = new Date(since); d < until; d.setDate(d.getDate() + 1)) {
+        slots.push(new Date(d));
+      }
     }
 
     const salesData = await Order.findAll({
@@ -34,16 +49,28 @@ const getSalesAnalytics = async (req, res) => {
       ],
       where: {
         status: { [Op.not]: 'cancelled' },
-        createdAt: {
-          [Op.gte]: new Date(new Date() - 365 * 24 * 60 * 60 * 1000) // Last 365 days
-        }
+        createdAt: { [Op.gte]: since, [Op.lt]: until }
       },
       group: ['period'],
       order: [['period', 'ASC']],
       raw: true
     });
 
-    res.json({ success: true, data: salesData });
+    // Build lookup keyed by YYYY-MM-DD (day) or YYYY-MM (month)
+    const keyLen = dateTrunc === 'month' ? 7 : 10;
+    const dataMap = {};
+    salesData.forEach(row => {
+      const key = new Date(row.period).toISOString().slice(0, keyLen);
+      dataMap[key] = row;
+    });
+
+    // Merge with all slots, zero-filling missing ones
+    const filled = slots.map(d => {
+      const key = d.toISOString().slice(0, keyLen);
+      return dataMap[key] || { period: d.toISOString(), totalSales: 0, orderCount: 0 };
+    });
+
+    res.json({ success: true, data: filled });
   } catch (error) {
     console.error('Sales analytics error:', error);
     res.status(500).json({ success: false, message: 'Error fetching sales analytics' });

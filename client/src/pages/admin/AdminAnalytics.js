@@ -63,11 +63,9 @@ const AdminAnalytics = () => {
   const salesChartData = {
     labels: salesData?.map(item => {
       const date = new Date(item.period);
-      return timeRange === 'yearly' 
-        ? date.getFullYear() 
-        : timeRange === 'monthly'
-        ? date.toLocaleString('default', { month: 'short', year: '2-digit' })
-        : `Week ${date.getWeek()}, ${date.getFullYear()}`;
+      if (timeRange === 'yearly') return date.toLocaleString('default', { month: 'short' });
+      if (timeRange === 'weekly') return date.toLocaleString('default', { weekday: 'short' });
+      return date.getDate().toString();
     }) || [],
     datasets: [
       {

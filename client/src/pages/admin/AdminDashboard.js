@@ -49,7 +49,7 @@ const AdminDashboard = () => {
         ]);
 
         if (salesRes.success) {
-          setSalesData(formatSalesData(salesRes.data));
+          setSalesData(formatSalesData(salesRes.data, salesPeriod));
         } else {
           toast.error('Failed to load sales data.');
         }
@@ -78,10 +78,15 @@ const AdminDashboard = () => {
     fetchAllData();
   }, [salesPeriod, productPeriod]);
 
-  const formatSalesData = (data) => {
-    const labels = data.map(d => new Date(d.period).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }));
-    const sales = data.map(d => d.totalSales);
-    const orders = data.map(d => d.orderCount);
+  const formatSalesData = (data, period) => {
+    const labels = data.map(d => {
+      const date = new Date(d.period);
+      if (period === 'weekly') return date.toLocaleDateString(undefined, { weekday: 'short' });
+      if (period === 'yearly') return date.toLocaleDateString(undefined, { month: 'short' });
+      return date.getDate().toString();
+    });
+    const sales = data.map(d => parseFloat(d.totalSales) || 0);
+    const orders = data.map(d => parseInt(d.orderCount) || 0);
 
     return {
       labels,
@@ -89,15 +94,29 @@ const AdminDashboard = () => {
         {
           label: 'Total Sales ($)',
           data: sales,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.15)',
+          pointBackgroundColor: '#6366f1',
+          pointBorderColor: '#fff',
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.4,
           yAxisID: 'y',
         },
         {
           label: 'Number of Orders',
           data: orders,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          borderColor: '#f43f5e',
+          backgroundColor: 'rgba(244, 63, 94, 0.1)',
+          pointBackgroundColor: '#f43f5e',
+          pointBorderColor: '#fff',
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.4,
           yAxisID: 'y1',
         },
       ],
@@ -121,40 +140,57 @@ const AdminDashboard = () => {
     };
   };
 
+  const now = new Date();
+  const periodLabel = salesPeriod === 'weekly'
+    ? `This Week (${now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} week)`
+    : salesPeriod === 'yearly'
+    ? `${now.getFullYear()}`
+    : now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
   const salesOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
+    interaction: { mode: 'index', intersect: false },
     plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
       title: {
         display: true,
-        text: 'Sales Performance',
+        text: `Sales Performance — ${periodLabel}`,
+        font: { size: 15, weight: '600' },
+        padding: { bottom: 16 },
       },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const label = ctx.dataset.label || '';
+            const val = ctx.parsed.y;
+            return label.includes('$') ? `  ${label}: $${val.toFixed(2)}` : `  ${label}: ${val}`;
+          }
+        }
+      }
     },
     scales: {
+      x: {
+        grid: { color: 'rgba(0,0,0,0.04)' },
+        ticks: { maxRotation: 45, font: { size: 11 } },
+      },
       y: {
         type: 'linear',
         display: true,
         position: 'left',
-        title: {
-          display: true,
-          text: 'Sales ($)'
-        }
+        beginAtZero: true,
+        grid: { color: 'rgba(0,0,0,0.06)' },
+        title: { display: true, text: 'Sales ($)', font: { size: 12 } },
+        ticks: { callback: v => `$${v}` },
       },
       y1: {
         type: 'linear',
         display: true,
         position: 'right',
-        title: {
-          display: true,
-          text: 'Orders'
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
+        beginAtZero: true,
+        grid: { drawOnChartArea: false },
+        title: { display: true, text: 'Orders', font: { size: 12 } },
+        ticks: { stepSize: 1 },
       },
     },
   };
