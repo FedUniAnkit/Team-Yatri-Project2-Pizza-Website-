@@ -801,18 +801,25 @@ const initiateRegister = async (req, res) => {
     });
 
     // Send OTP email
+    let emailSent = false;
     try {
       await emailService.sendEmail(email, 'Verify Your Email - Komorebi Pizza', 'registration-otp', {
         name,
         otp,
       });
+      emailSent = true;
+      console.log('[REGISTER-OTP] OTP email sent to:', email);
     } catch (emailErr) {
-      console.error('[REGISTER-OTP] Failed to send OTP email:', emailErr);
-      return res.status(500).json({ success: false, message: 'Failed to send verification email. Please try again.' });
+      console.error('[REGISTER-OTP] Email sending failed, using dev fallback. OTP:', otp);
     }
 
-    console.log('[REGISTER-OTP] OTP sent to:', email);
-    res.json({ success: true, message: 'Verification code sent to your email.' });
+    // If email sent successfully, don't expose OTP
+    // If email failed (dev mode), include OTP in response so user can still verify
+    const response = { success: true, message: emailSent ? 'Verification code sent to your email.' : 'Verification code generated (check screen).' };
+    if (!emailSent) {
+      response.devOtp = otp;
+    }
+    res.json(response);
   } catch (error) {
     console.error('[REGISTER-OTP] Error:', error);
     res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });

@@ -104,11 +104,15 @@ const AdminUsers = () => {
 
   const handleResetPassword = async (id) => {
     try {
-      await userService.adminResetPassword(id);
-      toast.success('Password reset link sent!');
+      const result = await userService.adminResetPassword(id);
+      if (result.temporaryPassword) {
+        toast.success(`Password reset! Temp password: ${result.temporaryPassword}`, { autoClose: 15000 });
+      } else {
+        toast.success(result.message || 'Password reset email sent!');
+      }
       setConfirmAction(null);
     } catch (err) {
-      toast.error('Failed to send password reset link.');
+      toast.error(err.response?.data?.message || 'Failed to reset password.');
     }
   };
 

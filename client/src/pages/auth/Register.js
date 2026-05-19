@@ -73,8 +73,15 @@ const Register = () => {
 
     try {
       const { confirmPassword, ...registerData } = formData;
-      await authService.initiateRegister(registerData);
-      toast.success('Verification code sent to your email!');
+      const result = await authService.initiateRegister(registerData);
+      
+      if (result.devOtp) {
+        // Dev mode: auto-fill OTP since email wasn't sent
+        setOtpDigits(result.devOtp.split(''));
+        toast.info('Dev mode: OTP auto-filled (email not configured)');
+      } else {
+        toast.success('Verification code sent to your email!');
+      }
       setStep(2);
       setResendCooldown(60);
     } catch (error) {

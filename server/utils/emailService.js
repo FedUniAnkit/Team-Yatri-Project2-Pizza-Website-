@@ -75,17 +75,15 @@ const sendPasswordResetEmail = async (user, resetToken) => {
   );
 };
 
-const sendPasswordResetByAdminEmail = async (user, resetToken) => {
-  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-  
+const sendPasswordResetByAdminEmail = async (user, temporaryPassword) => {
   await sendEmail(
     user.email,
     'Your Password Has Been Reset by an Administrator',
     'password-reset-by-admin',
     {
       name: user.name,
-      resetUrl,
-      expiresIn: '10 minutes',
+      temporaryPassword,
+      loginUrl: `${process.env.CLIENT_URL}/login`,
     }
   );
 };

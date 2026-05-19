@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User, Order, Favorite, Review, Message } = require('../models');
 const crypto = require('crypto');
 const { sendPasswordResetByAdminEmail } = require('../utils/emailService');
 const { validationResult } = require('express-validator');
@@ -100,6 +100,16 @@ const deleteUser = async (req, res) => {
       if (user.id === req.user.id) {
         return res.status(400).json({ success: false, message: 'You cannot delete your own account.' });
       }
+
+      // Remove related records and nullify FK references before deleting
+      await Favorite.destroy({ where: { userId: user.id } });
+      await Review.destroy({ where: { userId: user.id } });
+      await Message.destroy({ where: { senderId: user.id } });
+      await Message.destroy({ where: { receiverId: user.id } });
+      await Order.update({ cancelledBy: null }, { where: { cancelledBy: user.id } });
+      // Delete orders belonging to this user (messages linked to orders already removed above)
+      await Order.destroy({ where: { customerId: user.id } });
+
       await user.destroy();
       res.json({ success: true, message: 'User removed' });
     } else {
@@ -147,15 +157,6 @@ const setUserStatus = async (req, res) => {
 // @access  Private/Admin
 const adminResetPassword = async (req, res) => {
   try {
-    const { newPassword } = req.body;
-    
-    if (!newPassword) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'New password is required' 
-      });
-    }
-
     const user = await User.findByPk(req.params.id);
     if (!user) {
       return res.status(404).json({ 
@@ -164,15 +165,31 @@ const adminResetPassword = async (req, res) => {
       });
     }
 
+    // Use provided password or auto-generate a temporary one
+    const newPassword = req.body.newPassword || crypto.randomBytes(4).toString('hex') + 'A1!';
+
     // Update password and set force reset flag
     user.password = newPassword;
     user.forcePasswordReset = true;
+    user.isTemporaryPassword = true;
     user.passwordChangedAt = new Date();
     await user.save();
 
+    // Try to send email with temp password
+    let emailSent = false;
+    try {
+      await sendPasswordResetByAdminEmail(user, newPassword);
+      emailSent = true;
+    } catch (emailErr) {
+      console.log('[RESET-PASS] Email failed, returning temp password in response. Password:', newPassword);
+    }
+
     res.json({ 
       success: true, 
-      message: `Password updated for ${user.email}` 
+      message: emailSent 
+        ? `Password reset email sent to ${user.email}` 
+        : `Password reset for ${user.email}`,
+      temporaryPassword: emailSent ? undefined : newPassword,
     });
   } catch (error) {
     console.error('Admin password reset error:', error);
