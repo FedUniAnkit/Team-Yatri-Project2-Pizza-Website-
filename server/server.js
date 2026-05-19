@@ -99,6 +99,11 @@ app.use(express.raw({ limit: '50mb' }));
 // Static files - serve uploads with absolute path
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve React static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+}
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/promotions', promotionRoutes);
@@ -150,10 +155,21 @@ app.get('/api/health', async (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Handle 404
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
+// SPA fallback - serve index.html for all non-API routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    // Don't handle API routes
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API route not found' });
+    }
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+} else {
+  // Handle 404 in development
+  app.use('*', (req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+  });
+}
 
 const server = http.createServer(app);
 
