@@ -30,11 +30,9 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('PostgreSQL (Neon) Connected successfully!');
     
-    // Temporarily enable sync for Neon setup
-    if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync({ alter: false });
-      console.log('Database synchronized');
-    }
+    // Sync models - creates tables if they don't exist (safe for production)
+    await sequelize.sync({ alter: true });
+    console.log('Database synchronized');
   } catch (error) {
     console.error(' Database connection error:', error.message);
     process.exit(1);
