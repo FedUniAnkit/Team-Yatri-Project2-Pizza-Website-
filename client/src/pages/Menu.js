@@ -45,7 +45,8 @@ const Menu = () => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/200x200?text=🍕';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5000${imagePath}`;
+    const base = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+    return `${base}${imagePath}`;
   };
 
   useEffect(() => {
