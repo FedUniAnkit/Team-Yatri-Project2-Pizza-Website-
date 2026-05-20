@@ -32,6 +32,16 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Global crash handlers - log before exit so Render shows the error
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err.message, err.stack);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
+  process.exit(1);
+});
+
 // Connect to database
 connectDB();
 
