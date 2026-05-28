@@ -56,8 +56,7 @@ This project replaces expensive third-party ordering apps with a custom solution
 ### Backend
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
+- **Postgress SQL** - Database
 - **JWT** - Authentication
 - **Bcrypt** - Password hashing
 - **Nodemailer** - Email functionality
@@ -92,7 +91,7 @@ PPAP-main/
 
 ### Prerequisites
 - Node.js (v16 or higher)
-- MongoDB (local or cloud)
+- Postgress database (local or cloud)
 - Git
 
 ### Installation
@@ -198,7 +197,7 @@ For technical support or questions about the project, please refer to the user m
 ---
 
 **Project Status**: 🚧 In Development
-**Last Updated**: August 2025
+**Last Updated**: May 2026
 =======
 # Getting Started with Create React App
 
